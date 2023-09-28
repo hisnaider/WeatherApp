@@ -19,9 +19,9 @@ This app is designed with a clean and friendly interface, making it easier for u
 
 ## Roadmap
 - [X] Splash screen;
-- [ ] Introduction screen;
-  - [ ] Slide widget;
-  - [ ] Four introduction step;
+- [X] Introduction screen;
+  - [X] Page widget;
+  - [X] Four introduction step;
 - [ ] Map screen;
 - [ ] Current forecast weather screen;
 - [ ] Week forecast weather widget;

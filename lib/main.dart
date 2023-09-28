@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:weather_app/screen/introduction.dart';
 import 'package:weather_app/screen/splash_screen.dart';
 
 void main() {
@@ -14,11 +15,25 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
+        textTheme: TextTheme(
+          titleLarge: TextStyle(
+            fontFamily: "Poppins",
+            fontSize: 24,
+            fontWeight: FontWeight.w600,
+          ),
+          bodyLarge: TextStyle(
+            fontSize: 15,
+            letterSpacing: 0.65,
+            fontWeight: FontWeight.w400,
+            color: Colors.grey,
+          ),
+        ),
         colorScheme: ColorScheme.fromSeed(
-            seedColor: const Color.fromRGBO(0, 133, 255, 1)),
+            seedColor: Colors.white,
+            primary: const Color.fromRGBO(0, 133, 255, 1)),
         useMaterial3: true,
       ),
-      home: const SplashScreen(),
+      home: const IntroductionScreen(),
     );
   }
 }
