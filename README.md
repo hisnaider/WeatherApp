@@ -10,7 +10,7 @@
 
 The WeatherApp is a simple weather app that provides current weather conditions for any city. All the pertaining information is from OpenWeather API, one of the most popular weather APIs, that ensures users receive the most accurate and up-to-date weather data available. This API provides the temperature, cloud percentage, humidity percentage, UV index, wind speed and many other details.
 
-This app is designed with a clean and friendly interface, making it easier for users to quickly check the weather conditions in their city or any other location around the world. Users can use the GPS to get their location, search for a city name, or even use the map provided by Google.
+This app is designed with a clean and friendly interface, making it easier for users to quickly check the weather conditions in their city or any other location around the world. Users can use the GPS to get their location, search for a city name, or even use the map provided by OpenStreetMap.
 
 ## 🔨 Functionalities
 - `Search city`: 3 ways to search for a city: by name, using the map or by device's GPS;
@@ -23,11 +23,13 @@ This app is designed with a clean and friendly interface, making it easier for u
   - [X] Page widget;
   - [X] Four introduction step;
 - [ ] Map screen;
+  - [ ] Search a city by name;
+  - [ ] Search a city using the map;
+  - [ ] Get user's location using GPS;
 - [ ] Current forecast weather screen;
 - [ ] Week forecast weather widget;
 - [ ] Comunication with OpenWeather's API
 - [ ] Get location;
-- [ ] Search a city;
 - [ ] Get city using the map.
 
 ## How to run the project
