@@ -22,15 +22,15 @@ This app is designed with a clean and friendly interface, making it easier for u
 - [X] Introduction screen;
   - [X] Page widget;
   - [X] Four introduction step;
+- [ ] Comunication with OpenWeather's API
 - [ ] Map screen;
+  - [X] Map and search widgets
   - [ ] Search a city by name;
   - [ ] Search a city using the map;
   - [ ] Get user's location using GPS;
 - [ ] Current forecast weather screen;
 - [ ] Week forecast weather widget;
-- [ ] Comunication with OpenWeather's API
-- [ ] Get location;
-- [ ] Get city using the map.
+
 
 ## How to run the project
 1. Install Flutter https://docs.flutter.dev/get-started/install;
