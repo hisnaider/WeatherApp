@@ -190,7 +190,7 @@ class _Page extends StatelessWidget {
                 child: Visibility(
                   visible: showBackground,
                   child: SvgPicture.asset(
-                    "svg/slide_background.svg",
+                    "svg/introduction_background.svg",
                   ),
                 ),
               ),

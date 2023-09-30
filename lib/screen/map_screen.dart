@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:weather_app/components/map_weather_toggle.dart';
 import 'package:weather_app/constants.dart';
+import 'package:weather_app/screen/weather_screen.dart';
 
 /// The main widget representing the map screen.
 ///
@@ -18,39 +20,38 @@ class MapScreen extends StatefulWidget {
 
 class _MapScreenState extends State<MapScreen> {
   final MapController _mapController = MapController();
+  List<double> coordinates = [0, 0];
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Stack(
-        children: [
-          FlutterMap(
-            mapController: _mapController,
-            options: MapOptions(
-                zoom: 13,
-                maxZoom: 13,
-                minZoom: 8,
-                center: const LatLng(-32.0353776, -52.10758020000003),
-                interactiveFlags:
-                    InteractiveFlag.drag | InteractiveFlag.pinchZoom),
-            children: [
-              TileLayer(
-                urlTemplate: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-                userAgentPackageName: 'com.weatherapp.app',
-              )
-            ],
-          ),
-          const _SearchCity(),
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.only(bottom: 55),
-              child: Icon(
-                Icons.location_on,
-                color: Theme.of(context).colorScheme.primary,
-                size: 70,
-              ),
+      body: MapWeatherToogle(
+        weatherChild: SizedBox.shrink(),
+        mapChild: Stack(
+          children: [
+            FlutterMap(
+              mapController: _mapController,
+              options: MapOptions(
+                  zoom: 13,
+                  maxZoom: 13,
+                  minZoom: 8,
+                  center: const LatLng(-32.0353776, -52.10758020000003),
+                  interactiveFlags: coordinates.isEmpty
+                      ? InteractiveFlag.drag | InteractiveFlag.pinchZoom
+                      : InteractiveFlag.none),
+              children: [
+                TileLayer(
+                  urlTemplate: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+                  userAgentPackageName: 'com.weatherapp.app',
+                )
+              ],
             ),
-          ),
-        ],
+            Visibility(
+              visible: coordinates.isEmpty,
+              child: const _SearchCity(),
+            )
+          ],
+        ),
       ),
     );
   }
@@ -73,38 +74,57 @@ class _SearchCity extends StatefulWidget {
 class __SearchCityState extends State<_SearchCity> {
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return Stack(
       children: [
-        Container(
-          margin: const EdgeInsets.fromLTRB(10, 40, 10, 10),
-          decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10), color: Colors.white),
-          child: TextField(
-            autocorrect: true,
-            style: const TextStyle(
-                fontSize: 15, color: Color.fromRGBO(0, 0, 0, 0.75)),
-            onSubmitted: (value) => print(value),
-            decoration: kTextFieldDecoration.copyWith(
-              prefixIcon: const Icon(Icons.search),
-              suffixIcon: const Icon(Icons.close),
+        Column(
+          children: [
+            Container(
+              margin: const EdgeInsets.fromLTRB(10, 40, 10, 10),
+              decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10), color: Colors.white),
+              child: TextField(
+                autocorrect: true,
+                style: const TextStyle(
+                    fontSize: 15, color: Color.fromRGBO(0, 0, 0, 0.75)),
+                onSubmitted: (value) => print(value),
+                decoration: kTextFieldDecoration.copyWith(
+                  prefixIcon: const Icon(Icons.search),
+                  suffixIcon: const Icon(Icons.close),
+                ),
+              ),
             ),
-          ),
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10), color: Colors.white),
+              child: const Visibility(
+                visible: 1 == 1,
+                child: Column(
+                  children: [
+                    _CityWidget(
+                        city: "Rio Grande", uf: "RS", country: "Brasil"),
+                    _CityWidget(
+                        city: "Rio Grande da Serra",
+                        uf: "SP",
+                        country: "Brasil"),
+                    _CityWidget(
+                        city: "Rio Grande do Piauí",
+                        uf: "PI",
+                        country: "Brasil"),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
-        Container(
-          margin: const EdgeInsets.symmetric(horizontal: 10),
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-          decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10), color: Colors.white),
-          child: const Visibility(
-            visible: 1 == 1,
-            child: Column(
-              children: [
-                _CityWidget(city: "Rio Grande", uf: "RS", country: "Brasil"),
-                _CityWidget(
-                    city: "Rio Grande da Serra", uf: "SP", country: "Brasil"),
-                _CityWidget(
-                    city: "Rio Grande do Piauí", uf: "PI", country: "Brasil"),
-              ],
+        Center(
+          child: Padding(
+            padding: const EdgeInsets.only(bottom: 55),
+            child: Icon(
+              Icons.location_on,
+              color: Theme.of(context).colorScheme.primary,
+              size: 70,
             ),
           ),
         ),
@@ -149,10 +169,19 @@ class _CityWidget extends StatelessWidget {
             ],
           ),
           GestureDetector(
-            child: Text("Ver clima",
-                style: TextStyle(
-                    fontSize: 12,
-                    color: Theme.of(context).colorScheme.primary)),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const WeatherScreen()),
+              );
+            },
+            child: Text(
+              "Ver clima",
+              style: TextStyle(
+                fontSize: 12,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+            ),
           ),
         ],
       ),

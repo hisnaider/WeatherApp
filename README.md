@@ -37,7 +37,7 @@ This app is designed with a clean and friendly interface, making it easier for u
 2. Clone this repo: `git clone https://github.com/hisnaider/WeatherApp.git`;
 4. Go to project's root and run: `flutter pub get`;
 5. Get a free OpenWeather's API key https://openweathermap.org/api;
-6. Enter yout API key in `config.dart` (API_KEY).
+6. Enter yout API key in `config.dart` (apiKey).
 
 # Developer
 | [<img loading="lazy" src="https://avatars.githubusercontent.com/u/13882534?v=4" width=115><br><sub>Hisnaider Ribeiro Campello</sub>](https://github.com/hisnaider) |

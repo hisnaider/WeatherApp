@@ -21,6 +21,11 @@ class MyApp extends StatelessWidget {
             fontSize: 24,
             fontWeight: FontWeight.w600,
           ),
+          titleMedium: TextStyle(
+            fontFamily: "Poppins",
+            fontSize: 20,
+            fontWeight: FontWeight.w500,
+          ),
           bodyLarge: TextStyle(
             fontSize: 18,
             letterSpacing: 0.65,
