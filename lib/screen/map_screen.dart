@@ -164,7 +164,7 @@ class _CityWidget extends StatelessWidget {
               ),
               Text(
                 country,
-                style: Theme.of(context).textTheme.labelSmall,
+                style: Theme.of(context).textTheme.labelMedium,
               )
             ],
           ),

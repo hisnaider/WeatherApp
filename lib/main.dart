@@ -26,6 +26,11 @@ class MyApp extends StatelessWidget {
             fontSize: 20,
             fontWeight: FontWeight.w500,
           ),
+          titleSmall: TextStyle(
+            fontFamily: "Poppins",
+            fontSize: 18,
+            fontWeight: FontWeight.w500,
+          ),
           bodyLarge: TextStyle(
             fontSize: 18,
             letterSpacing: 0.65,
@@ -37,10 +42,20 @@ class MyApp extends StatelessWidget {
             fontWeight: FontWeight.w400,
             color: Color.fromRGBO(0, 0, 0, 0.75),
           ),
-          labelSmall: TextStyle(
+          bodySmall: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w400,
+            color: Color.fromRGBO(0, 0, 0, 0.25),
+          ),
+          labelMedium: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w400,
             color: Color.fromRGBO(0, 0, 0, 0.25),
+          ),
+          labelSmall: TextStyle(
+            fontSize: 10,
+            fontWeight: FontWeight.w400,
+            color: Color.fromRGBO(0, 0, 0, 0.75),
           ),
         ),
         colorScheme: ColorScheme.fromSeed(

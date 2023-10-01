@@ -29,7 +29,7 @@ This app is designed with a clean and friendly interface, making it easier for u
   - [ ] Search a city using the map;
   - [ ] Get user's location using GPS;
 - [ ] Current forecast weather screen;
-- [ ] Week forecast weather widget;
+- [X] Week forecast weather widget;
 
 
 ## How to run the project

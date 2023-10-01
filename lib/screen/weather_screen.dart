@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:weather_app/components/daily_forecast_widget.dart';
+import 'package:weather_app/components/weather_detail.dart';
+import 'package:weather_app/enum/type_of_weather_detail.dart';
 
 class WeatherScreen extends StatefulWidget {
   const WeatherScreen({super.key});
@@ -99,27 +102,39 @@ class _WeatherDetails extends StatefulWidget {
 }
 
 class __WeatherDetailsState extends State<_WeatherDetails> {
-  late double maxContainerHeight;
-  double containerHeight = 200;
+  bool isOpen = false;
+  double containerHeight = 250;
 
   void changeContainerHeight(double velocity) {
-    if (velocity < -2500 && containerHeight < maxContainerHeight) {
-      setState(() {
-        containerHeight = maxContainerHeight;
-      });
-    } else if (velocity > 2500 && containerHeight > 200) {
-      setState(() {
-        containerHeight = 200;
-      });
+    double currentHeight = containerHeight;
+    bool currentOpenly = isOpen;
+    if (isOpen == false) {
+      if (containerHeight > 350) {
+        currentHeight = 600;
+        currentOpenly = true;
+      } else {
+        currentHeight = 250;
+      }
+    } else {
+      if (containerHeight < 500) {
+        currentHeight = 250;
+        currentOpenly = false;
+      } else {
+        currentHeight = 600;
+      }
     }
+    setState(() {
+      containerHeight = currentHeight;
+      isOpen = currentOpenly;
+    });
   }
 
   void dragContainer(double y) {
     double currentHeight = containerHeight - y;
-    if (currentHeight < 200)
-      currentHeight = 200;
-    else if (containerHeight > maxContainerHeight)
-      currentHeight = maxContainerHeight;
+    if (containerHeight > 600)
+      currentHeight = 600;
+    else if (containerHeight < 250) currentHeight = 250;
+
     setState(() {
       containerHeight = currentHeight;
     });
@@ -135,15 +150,14 @@ class __WeatherDetailsState extends State<_WeatherDetails> {
 
   @override
   Widget build(BuildContext context) {
-    maxContainerHeight = MediaQuery.of(context).size.height * 0.75;
     return GestureDetector(
       onVerticalDragEnd: (details) {
         changeContainerHeight(details.velocity.pixelsPerSecond.dy);
       },
       onVerticalDragUpdate: (details) => dragContainer(details.delta.dy),
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 50),
-        curve: Curves.easeIn,
+        duration: const Duration(milliseconds: 150),
+        curve: Curves.decelerate,
         height: containerHeight,
         width: double.infinity,
         decoration: const BoxDecoration(
@@ -154,26 +168,73 @@ class __WeatherDetailsState extends State<_WeatherDetails> {
         ),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 10),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 10),
-                child: Center(
-                  child: Container(
-                    height: 5,
-                    width: 30,
-                    decoration: BoxDecoration(
-                        color: Colors.grey.shade400,
-                        borderRadius: BorderRadius.circular(90)),
+          child: OverflowBox(
+            maxHeight: 650,
+            alignment: Alignment.topCenter,
+            minHeight: 200,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  child: Center(
+                    child: Container(
+                      height: 5,
+                      width: 30,
+                      decoration: BoxDecoration(
+                          color: Colors.grey.shade400,
+                          borderRadius: BorderRadius.circular(90)),
+                    ),
                   ),
                 ),
-              ),
-              Text(
-                "O tempo agora",
-                style: Theme.of(context).textTheme.titleMedium,
-              )
-            ],
+                Text(
+                  "O tempo agora",
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                Padding(
+                  padding: EdgeInsets.symmetric(vertical: 10),
+                  child: Wrap(
+                    runSpacing: 5,
+                    runAlignment: WrapAlignment.spaceBetween,
+                    clipBehavior: Clip.hardEdge,
+                    children: [
+                      WeatherDetail(
+                          weather: TypeOfWeatherDetail.feelsLike, value: "20"),
+                      WeatherDetail(
+                          weather: TypeOfWeatherDetail.wind, value: "12"),
+                      WeatherDetail(
+                          weather: TypeOfWeatherDetail.cloud, value: "53"),
+                      WeatherDetail(
+                          weather: TypeOfWeatherDetail.precipitation,
+                          value: "1"),
+                      WeatherDetail(
+                          weather: TypeOfWeatherDetail.uvi, value: "0.16"),
+                      WeatherDetail(
+                          weather: TypeOfWeatherDetail.humidity, value: "0")
+                    ],
+                  ),
+                ),
+                Divider(
+                  height: 20,
+                  color: Colors.grey,
+                  indent: 20,
+                  endIndent: 20,
+                  thickness: 0.3,
+                ),
+                Text(
+                  "Previsões pra semana",
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                Expanded(
+                    child: ListView.builder(
+                  padding: EdgeInsetsDirectional.zero,
+                  itemCount: 7,
+                  itemBuilder: (context, index) {
+                    return DailyForecastWidget();
+                  },
+                ))
+              ],
+            ),
           ),
         ),
       ),

@@ -19,7 +19,7 @@ class IntroductionScreen extends StatelessWidget {
             _Page(
               widget: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 50),
-                child: SvgPicture.asset("svg/Logo.svg"),
+                child: SvgPicture.asset("svg/logo.svg"),
               ),
               showBackground: false,
               title: "Bem vindo(a)!",
