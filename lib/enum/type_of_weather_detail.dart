@@ -1,5 +1,3 @@
-import 'package:flutter_svg/flutter_svg.dart';
-
 enum TypeOfWeatherDetail {
   cloud("Nuvens", "svg/weather_details/cloud_percentage.svg", "%"),
   feelsLike("Sensação", "svg/weather_details/feels_like.svg", "º"),

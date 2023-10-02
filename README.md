@@ -22,10 +22,10 @@ This app is designed with a clean and friendly interface, making it easier for u
 - [X] Introduction screen;
   - [X] Page widget;
   - [X] Four introduction step;
-- [ ] Comunication with OpenWeather's API
+- [X] Comunication with OpenWeather's API
 - [ ] Map screen;
   - [X] Map and search widgets
-  - [ ] Search a city by name;
+  - [X] Search a city by name;
   - [ ] Search a city using the map;
   - [ ] Get user's location using GPS;
 - [ ] Current forecast weather screen;
@@ -36,7 +36,7 @@ This app is designed with a clean and friendly interface, making it easier for u
 1. Install Flutter https://docs.flutter.dev/get-started/install;
 2. Clone this repo: `git clone https://github.com/hisnaider/WeatherApp.git`;
 4. Go to project's root and run: `flutter pub get`;
-5. Get a free OpenWeather's API key https://openweathermap.org/api;
+5. Get a free OpenWeather's One Call API key https://openweathermap.org/api;
 6. Enter yout API key in `config.dart` (apiKey).
 
 # Developer

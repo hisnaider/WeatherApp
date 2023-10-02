@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:weather_app/components/map_weather_toggle.dart';
 import 'package:weather_app/constants.dart';
 import 'package:weather_app/screen/weather_screen.dart';
+import 'package:weather_app/services/geocoding_api.dart';
 
 /// The main widget representing the map screen.
 ///
@@ -11,6 +13,9 @@ import 'package:weather_app/screen/weather_screen.dart';
 /// dragging and pinch zooming. It includes features such as a text field to
 /// search for a city, a floating button to obtain the current location, and a
 /// map for navigating to a specific city.
+///
+/// If the [coordinates] parameter is not null, the WeatherScreen will display
+/// the weather forecast for that location.
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
 
@@ -20,13 +25,14 @@ class MapScreen extends StatefulWidget {
 
 class _MapScreenState extends State<MapScreen> {
   final MapController _mapController = MapController();
-  List<double> coordinates = [0, 0];
+  List<double>? coordinates;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: MapWeatherToogle(
         weatherChild: SizedBox.shrink(),
+        showBackground: coordinates != null,
         mapChild: Stack(
           children: [
             FlutterMap(
@@ -36,7 +42,7 @@ class _MapScreenState extends State<MapScreen> {
                   maxZoom: 13,
                   minZoom: 8,
                   center: const LatLng(-32.0353776, -52.10758020000003),
-                  interactiveFlags: coordinates.isEmpty
+                  interactiveFlags: coordinates == null
                       ? InteractiveFlag.drag | InteractiveFlag.pinchZoom
                       : InteractiveFlag.none),
               children: [
@@ -47,7 +53,7 @@ class _MapScreenState extends State<MapScreen> {
               ],
             ),
             Visibility(
-              visible: coordinates.isEmpty,
+              visible: coordinates == null,
               child: const _SearchCity(),
             )
           ],
@@ -72,6 +78,25 @@ class _SearchCity extends StatefulWidget {
 }
 
 class __SearchCityState extends State<_SearchCity> {
+  /// List of searched cities
+  List<dynamic> _cities = [];
+
+  /// Function to search cities by name
+  void searchCityByName(String city) async {
+    if (city.trim() != "") {
+      var findedCities = await GeocodingAPI().getCity(city);
+      if (findedCities["data"] != null) {
+        setState(() {
+          _cities = findedCities["data"];
+        });
+      }
+    } else {
+      setState(() {
+        _cities = [];
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Stack(
@@ -86,32 +111,31 @@ class __SearchCityState extends State<_SearchCity> {
                 autocorrect: true,
                 style: const TextStyle(
                     fontSize: 15, color: Color.fromRGBO(0, 0, 0, 0.75)),
-                onSubmitted: (value) => print(value),
+                onSubmitted: searchCityByName,
                 decoration: kTextFieldDecoration.copyWith(
                   prefixIcon: const Icon(Icons.search),
-                  suffixIcon: const Icon(Icons.close),
+                  //suffixIcon: const Icon(Icons.close),
                 ),
               ),
             ),
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 10),
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-              decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10), color: Colors.white),
-              child: const Visibility(
-                visible: 1 == 1,
+            Visibility(
+              visible: _cities.isNotEmpty,
+              child: Container(
+                margin: const EdgeInsets.symmetric(horizontal: 10),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(10),
+                    color: Colors.white),
                 child: Column(
                   children: [
-                    _CityWidget(
-                        city: "Rio Grande", uf: "RS", country: "Brasil"),
-                    _CityWidget(
-                        city: "Rio Grande da Serra",
-                        uf: "SP",
-                        country: "Brasil"),
-                    _CityWidget(
-                        city: "Rio Grande do Piauí",
-                        uf: "PI",
-                        country: "Brasil"),
+                    for (int i = 0; i < _cities.length; i++) ...[
+                      _CityWidget(
+                          city: _cities[i]["name"],
+                          uf: _cities[i]["state"],
+                          country: _cities[i]["country"],
+                          coordinates: [_cities[i]["lat"], _cities[i]["lon"]]),
+                    ]
                   ],
                 ),
               ),
@@ -140,15 +164,22 @@ class __SearchCityState extends State<_SearchCity> {
 /// [city]: The name of the city.
 /// [uf]: The state of the city.
 /// [country]: The country of the city.
+/// [coordinates]: The coordinates of the city
 class _CityWidget extends StatelessWidget {
   final String city;
   final String uf;
   final String country;
+  final List<double> coordinates;
   const _CityWidget(
-      {super.key, required this.city, required this.uf, required this.country});
+      {super.key,
+      required this.city,
+      required this.uf,
+      required this.country,
+      required this.coordinates});
 
   @override
   Widget build(BuildContext context) {
+    print([coordinates[0], coordinates[1]]);
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 5),
       child: Row(
@@ -159,11 +190,11 @@ class _CityWidget extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                "$city - $uf",
+                city,
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
               Text(
-                country,
+                "$uf, $country",
                 style: Theme.of(context).textTheme.labelMedium,
               )
             ],

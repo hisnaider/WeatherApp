@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:weather_app/components/daily_forecast_widget.dart';
+import 'package:weather_app/components/hourly_forecast_widget.dart';
 import 'package:weather_app/components/weather_detail.dart';
 import 'package:weather_app/enum/type_of_weather_detail.dart';
 
@@ -12,43 +13,32 @@ class WeatherScreen extends StatefulWidget {
 }
 
 class _WeatherScreenState extends State<WeatherScreen> {
-  double containerHeight = 250;
+  bool _showHourlyForecast = true;
+
+  void _setShowHourlyForecast(double weekForecastWidgetHeight) {
+    if (weekForecastWidgetHeight < 450 && _showHourlyForecast) {
+      setState(() {
+        _showHourlyForecast = false;
+      });
+    } else if (weekForecastWidgetHeight >= 450 && !_showHourlyForecast) {
+      setState(() {
+        _showHourlyForecast = true;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    print("qqqqq");
     return Column(
       children: [
         const _CityName(name: "Rio Grande", state: "RS"),
-        Expanded(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  SvgPicture.asset("svg/weather/clear_sky_day.svg"),
-                  const Text(
-                    "Céu limpo",
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w500,
-                        fontSize: 18),
-                  )
-                ],
-              ),
-              const Text(
-                "23º",
-                style: TextStyle(
-                    color: Colors.white,
-                    fontFamily: "Poppins",
-                    fontSize: 100,
-                    fontWeight: FontWeight.w300,
-                    height: 0.95),
-              )
-            ],
-          ),
-        ),
-        const _WeatherDetails()
+        const _TemperatureWidget(),
+        _HourlyWidgetList(showHourlyForecast: _showHourlyForecast),
+        _WeatherDetails(
+          screenHeight: MediaQuery.of(context).size.height,
+          setShowHourlyForecast: _setShowHourlyForecast,
+        )
       ],
     );
   }
@@ -64,7 +54,7 @@ class _CityName extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(10, 50, 10, 10),
+      padding: const EdgeInsets.fromLTRB(10, 45, 10, 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -94,8 +84,106 @@ class _CityName extends StatelessWidget {
   }
 }
 
+///
+///
+///
+///
+///
+///
+
+class _TemperatureWidget extends StatelessWidget {
+  const _TemperatureWidget({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SvgPicture.asset("svg/weather/clear_sky_day.svg"),
+              const Text(
+                "Céu limpo",
+                style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w500,
+                    fontSize: 18),
+              )
+            ],
+          ),
+          const Text(
+            "23º",
+            style: TextStyle(
+                color: Colors.white,
+                fontFamily: "Poppins",
+                fontSize: 100,
+                fontWeight: FontWeight.w300,
+                height: 0.95),
+          )
+        ],
+      ),
+    );
+  }
+}
+
+///
+///
+///
+///
+///
+///
+
+class _HourlyWidgetList extends StatefulWidget {
+  final bool showHourlyForecast;
+  const _HourlyWidgetList({super.key, required this.showHourlyForecast});
+
+  @override
+  State<_HourlyWidgetList> createState() => __HourlyWidgetListState();
+}
+
+class __HourlyWidgetListState extends State<_HourlyWidgetList> {
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedCrossFade(
+        crossFadeState: widget.showHourlyForecast
+            ? CrossFadeState.showFirst
+            : CrossFadeState.showSecond,
+        duration: const Duration(milliseconds: 250),
+        firstChild: const Padding(
+          padding: EdgeInsets.symmetric(vertical: 10),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              HourlyForecastWidget(),
+              HourlyForecastWidget(),
+              HourlyForecastWidget(),
+              HourlyForecastWidget()
+            ],
+          ),
+        ),
+        secondChild: const Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [],
+        ));
+  }
+}
+
+///
+///
+///
+///
+///
+///
+
 class _WeatherDetails extends StatefulWidget {
-  const _WeatherDetails({super.key});
+  final double screenHeight;
+  final Function(double) setShowHourlyForecast;
+  const _WeatherDetails(
+      {super.key,
+      required this.screenHeight,
+      required this.setShowHourlyForecast});
 
   @override
   State<_WeatherDetails> createState() => __WeatherDetailsState();
@@ -107,33 +195,22 @@ class __WeatherDetailsState extends State<_WeatherDetails> {
 
   void changeContainerHeight(double velocity) {
     double currentHeight = containerHeight;
-    bool currentOpenly = isOpen;
-    if (isOpen == false) {
-      if (containerHeight > 350) {
-        currentHeight = 600;
-        currentOpenly = true;
-      } else {
-        currentHeight = 250;
-      }
-    } else {
-      if (containerHeight < 500) {
-        currentHeight = 250;
-        currentOpenly = false;
-      } else {
-        currentHeight = 600;
-      }
-    }
     setState(() {
-      containerHeight = currentHeight;
-      isOpen = currentOpenly;
+      containerHeight =
+          (isOpen ? currentHeight > 500 : currentHeight > 350) ? 600 : 250;
+      isOpen = (isOpen ? currentHeight > 500 : currentHeight > 350);
     });
+    widget.setShowHourlyForecast(widget.screenHeight - containerHeight);
   }
 
   void dragContainer(double y) {
     double currentHeight = containerHeight - y;
-    if (containerHeight > 600)
+    if (containerHeight > 600) {
       currentHeight = 600;
-    else if (containerHeight < 250) currentHeight = 250;
+    } else if (containerHeight < 250) {
+      currentHeight = 250;
+    }
+    widget.setShowHourlyForecast(widget.screenHeight - containerHeight);
 
     setState(() {
       containerHeight = currentHeight;
@@ -191,7 +268,7 @@ class __WeatherDetailsState extends State<_WeatherDetails> {
                   "O tempo agora",
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
-                Padding(
+                const Padding(
                   padding: EdgeInsets.symmetric(vertical: 10),
                   child: Wrap(
                     runSpacing: 5,
@@ -214,7 +291,7 @@ class __WeatherDetailsState extends State<_WeatherDetails> {
                     ],
                   ),
                 ),
-                Divider(
+                const Divider(
                   height: 20,
                   color: Colors.grey,
                   indent: 20,
@@ -222,7 +299,7 @@ class __WeatherDetailsState extends State<_WeatherDetails> {
                   thickness: 0.3,
                 ),
                 Text(
-                  "Previsões pra semana",
+                  "Previsões pros proximos dias",
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 Expanded(
@@ -230,7 +307,7 @@ class __WeatherDetailsState extends State<_WeatherDetails> {
                   padding: EdgeInsetsDirectional.zero,
                   itemCount: 7,
                   itemBuilder: (context, index) {
-                    return DailyForecastWidget();
+                    return const DailyForecastWidget();
                   },
                 ))
               ],

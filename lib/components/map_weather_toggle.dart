@@ -4,16 +4,19 @@ import 'package:weather_app/screen/weather_screen.dart';
 class MapWeatherToogle extends StatefulWidget {
   final Widget mapChild;
   final Widget weatherChild;
+  final bool showBackground;
   const MapWeatherToogle(
-      {super.key, required this.mapChild, required this.weatherChild});
+      {super.key,
+      required this.mapChild,
+      required this.weatherChild,
+      required this.showBackground});
 
   @override
   State<MapWeatherToogle> createState() => _MapWeatherToogleState();
 }
 
 class _MapWeatherToogleState extends State<MapWeatherToogle> {
-  bool _showBackground = true;
-  bool _fetchingData = false;
+  bool _fetchingData = true;
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +24,7 @@ class _MapWeatherToogleState extends State<MapWeatherToogle> {
       children: [
         widget.mapChild,
         Visibility(
-          visible: _showBackground,
+          visible: widget.showBackground,
           child: Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
