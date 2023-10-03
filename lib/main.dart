@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:weather_app/screen/introduction.dart';
+import 'package:weather_app/screen/map_screen.dart';
 import 'package:weather_app/screen/splash_screen.dart';
 
 void main() {
@@ -63,7 +64,7 @@ class MyApp extends StatelessWidget {
             primary: const Color.fromRGBO(0, 133, 255, 1)),
         useMaterial3: true,
       ),
-      home: const IntroductionScreen(),
+      home: const MapScreen(),
     );
   }
 }

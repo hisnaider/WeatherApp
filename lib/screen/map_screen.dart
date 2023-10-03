@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:weather_app/components/map_pin.dart';
 import 'package:weather_app/components/map_weather_toggle.dart';
 import 'package:weather_app/constants.dart';
 import 'package:weather_app/screen/weather_screen.dart';
@@ -41,7 +43,7 @@ class _MapScreenState extends State<MapScreen> {
                   zoom: 13,
                   maxZoom: 13,
                   minZoom: 8,
-                  center: const LatLng(-32.0353776, -52.10758020000003),
+                  center: const LatLng(-32.07047535370759, -52.182201210078844),
                   interactiveFlags: coordinates == null
                       ? InteractiveFlag.drag | InteractiveFlag.pinchZoom
                       : InteractiveFlag.none),
@@ -84,7 +86,7 @@ class __SearchCityState extends State<_SearchCity> {
   /// Function to search cities by name
   void searchCityByName(String city) async {
     if (city.trim() != "") {
-      var findedCities = await GeocodingAPI().getCity(city);
+      var findedCities = await GeocodingAPI().getCityByName(city);
       if (findedCities["data"] != null) {
         setState(() {
           _cities = findedCities["data"];
@@ -142,16 +144,7 @@ class __SearchCityState extends State<_SearchCity> {
             ),
           ],
         ),
-        Center(
-          child: Padding(
-            padding: const EdgeInsets.only(bottom: 55),
-            child: Icon(
-              Icons.location_on,
-              color: Theme.of(context).colorScheme.primary,
-              size: 70,
-            ),
-          ),
-        ),
+        MapPin()
       ],
     );
   }
