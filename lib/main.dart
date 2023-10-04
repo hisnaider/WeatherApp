@@ -16,6 +16,12 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
+        floatingActionButtonTheme: FloatingActionButtonThemeData(
+          backgroundColor: const Color.fromRGBO(0, 133, 255, 1),
+          sizeConstraints: BoxConstraints.tightFor(height: 65, width: 65),
+          shape: CircleBorder(),
+          iconSize: 35,
+        ),
         textTheme: TextTheme(
           titleLarge: TextStyle(
             fontFamily: "Poppins",

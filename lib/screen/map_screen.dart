@@ -8,6 +8,7 @@ import 'package:weather_app/components/map_weather_toggle.dart';
 import 'package:weather_app/constants.dart';
 import 'package:weather_app/screen/weather_screen.dart';
 import 'package:weather_app/services/geocoding_api.dart';
+import 'package:weather_app/services/geolocator_api.dart';
 
 /// The main widget representing the map screen.
 ///
@@ -26,41 +27,97 @@ class MapScreen extends StatefulWidget {
 }
 
 class _MapScreenState extends State<MapScreen> {
-  final MapController _mapController = MapController();
-  List<double>? coordinates;
+  bool _hasBeenInitialized = false;
+  late List<double> _coordinates;
+
+  void _init() async {
+    Map<String, dynamic> position = await GeolocatorAPI().getPosition();
+    print(position);
+    if (position["data"] != null) {
+      _coordinates = [position["data"].latitude, position["data"].longitude];
+    } else {
+      _coordinates = [-32.0334252, -52.0991297];
+    }
+    setState(() {
+      _hasBeenInitialized = true;
+    });
+  }
+
+  @override
+  void initState() {
+    _init();
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
+    if (!_hasBeenInitialized) {
+      return const Scaffold(
+        body: Center(
+          child: SizedBox(
+            height: 150,
+            width: 150,
+            child: CircularProgressIndicator(),
+          ),
+        ),
+      );
+    }
     return Scaffold(
       body: MapWeatherToogle(
-        weatherChild: SizedBox.shrink(),
-        showBackground: coordinates != null,
+        weatherChild: const SizedBox.shrink(),
+        showBackground: false,
         mapChild: Stack(
           children: [
-            FlutterMap(
-              mapController: _mapController,
-              options: MapOptions(
-                  zoom: 13,
-                  maxZoom: 13,
-                  minZoom: 8,
-                  center: const LatLng(-32.07047535370759, -52.182201210078844),
-                  interactiveFlags: coordinates == null
-                      ? InteractiveFlag.drag | InteractiveFlag.pinchZoom
-                      : InteractiveFlag.none),
-              children: [
-                TileLayer(
-                  urlTemplate: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-                  userAgentPackageName: 'com.weatherapp.app',
-                )
-              ],
-            ),
+            _MapWidget(coordinates: _coordinates),
             Visibility(
-              visible: coordinates == null,
+              visible: true,
               child: const _SearchCity(),
             )
           ],
         ),
       ),
+    );
+  }
+}
+
+class _MapWidget extends StatefulWidget {
+  final List<double> coordinates;
+  final bool cityHasBeenSelected;
+  const _MapWidget(
+      {super.key, required this.coordinates, this.cityHasBeenSelected = false});
+
+  @override
+  State<_MapWidget> createState() => _MapWidgetState();
+}
+
+class _MapWidgetState extends State<_MapWidget> {
+  final MapController _mapController = MapController();
+  late List<double> _mapCenter;
+
+  @override
+  void initState() {
+    _mapCenter = widget.coordinates;
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FlutterMap(
+      mapController: _mapController,
+      options: MapOptions(
+          zoom: 13,
+          maxZoom: 13,
+          minZoom: 8,
+          center: LatLng(_mapCenter[0], _mapCenter[1]),
+          interactiveFlags: !widget.cityHasBeenSelected
+              ? InteractiveFlag.drag | InteractiveFlag.pinchZoom
+              : InteractiveFlag.none),
+      children: [
+        TileLayer(
+          urlTemplate: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+          userAgentPackageName: 'com.weatherapp.app',
+        )
+      ],
     );
   }
 }
@@ -144,7 +201,7 @@ class __SearchCityState extends State<_SearchCity> {
             ),
           ],
         ),
-        MapPin()
+        const MapPin()
       ],
     );
   }
@@ -172,7 +229,6 @@ class _CityWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    print([coordinates[0], coordinates[1]]);
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 5),
       child: Row(
@@ -194,10 +250,7 @@ class _CityWidget extends StatelessWidget {
           ),
           GestureDetector(
             onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const WeatherScreen()),
-              );
+              print(coordinates);
             },
             child: Text(
               "Ver clima",
