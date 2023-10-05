@@ -1,10 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:weather_app/class/app_state_manager.dart';
 import 'package:weather_app/screen/introduction.dart';
 import 'package:weather_app/screen/map_screen.dart';
 import 'package:weather_app/screen/splash_screen.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (BuildContext context) =>
+          AppStateManager(coord: [-32.0334252, -52.0991297]),
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {

@@ -1,9 +1,15 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:flutter_map_animations/flutter_map_animations.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:provider/provider.dart';
+import 'package:weather_app/class/app_state_manager.dart';
 import 'package:weather_app/components/map_pin.dart';
+import 'package:weather_app/components/map_screen_background.dart';
 import 'package:weather_app/components/map_weather_toggle.dart';
 import 'package:weather_app/constants.dart';
 import 'package:weather_app/screen/weather_screen.dart';
@@ -28,24 +34,14 @@ class MapScreen extends StatefulWidget {
 
 class _MapScreenState extends State<MapScreen> {
   bool _hasBeenInitialized = false;
-  late List<double> _coordinates;
 
-  void _init() async {
-    Map<String, dynamic> position = await GeolocatorAPI().getPosition();
-    print(position);
-    if (position["data"] != null) {
-      _coordinates = [position["data"].latitude, position["data"].longitude];
-    } else {
-      _coordinates = [-32.0334252, -52.0991297];
-    }
-    setState(() {
-      _hasBeenInitialized = true;
-    });
+  bool _checkCitySelected() {
+    return false;
   }
 
   @override
   void initState() {
-    _init();
+    _hasBeenInitialized = true;
     super.initState();
   }
 
@@ -62,62 +58,100 @@ class _MapScreenState extends State<MapScreen> {
         ),
       );
     }
-    return Scaffold(
-      body: MapWeatherToogle(
-        weatherChild: const SizedBox.shrink(),
-        showBackground: false,
-        mapChild: Stack(
-          children: [
-            _MapWidget(coordinates: _coordinates),
-            Visibility(
-              visible: true,
-              child: const _SearchCity(),
-            )
-          ],
-        ),
-      ),
+    return Selector<AppStateManager, bool>(
+      selector: (context, myState) => myState.cityHasBeenSelected,
+      builder: (context, value, child) {
+        return Scaffold(
+          body: MapWeatherToogle(
+            weatherChild: const SizedBox.shrink(),
+            showBackground: value,
+            mapChild: Stack(
+              children: [
+                _MapWidget(cityHasBeenSelected: value),
+                AnimatedSwitcher(
+                  duration: Duration(milliseconds: 500),
+                  child: SizedBox(
+                      key: ValueKey<bool>(value),
+                      child: value ? MapScreenBackground() : _SearchCity()),
+                ),
+                Align(
+                  alignment: Alignment.bottomCenter,
+                  child: ElevatedButton(
+                      onPressed: () {
+                        Provider.of<AppStateManager>(context, listen: false)
+                            .teste();
+                      },
+                      child: Text("asdasd")),
+                )
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }
 
+/// The widget that display the map
+///
+/// This widget displays an interactive map for users to interact with it by
+/// dragging and pinch zooming.
+///
+/// It uses a Selector to listen any changes on variable coordinates that is in
+/// [AppStateManager]. When there's a change, the map will move to the new
+/// coordinate with a animation
+///
+/// [cityHasBeenSelected]: A boolean value that indicates if a city has been
+/// selected, if it's true, the map won't be interactive
+
 class _MapWidget extends StatefulWidget {
-  final List<double> coordinates;
   final bool cityHasBeenSelected;
-  const _MapWidget(
-      {super.key, required this.coordinates, this.cityHasBeenSelected = false});
+  const _MapWidget({super.key, required this.cityHasBeenSelected});
 
   @override
   State<_MapWidget> createState() => _MapWidgetState();
 }
 
-class _MapWidgetState extends State<_MapWidget> {
-  final MapController _mapController = MapController();
-  late List<double> _mapCenter;
-
-  @override
-  void initState() {
-    _mapCenter = widget.coordinates;
-    super.initState();
-  }
+class _MapWidgetState extends State<_MapWidget> with TickerProviderStateMixin {
+  AnimatedMapController? _mapController;
 
   @override
   Widget build(BuildContext context) {
-    return FlutterMap(
-      mapController: _mapController,
-      options: MapOptions(
-          zoom: 13,
-          maxZoom: 13,
-          minZoom: 8,
-          center: LatLng(_mapCenter[0], _mapCenter[1]),
-          interactiveFlags: !widget.cityHasBeenSelected
-              ? InteractiveFlag.drag | InteractiveFlag.pinchZoom
-              : InteractiveFlag.none),
-      children: [
-        TileLayer(
-          urlTemplate: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-          userAgentPackageName: 'com.weatherapp.app',
-        )
-      ],
+    return Selector<AppStateManager, List<double>>(
+      selector: (context, myState) => myState.coordinates,
+      shouldRebuild: (previous, next) => previous != next,
+      builder: (context, value, child) {
+        LatLng coord = LatLng(value[0], value[1]);
+        if (_mapController != null) {
+          _mapController!.animateTo(
+            dest: coord,
+            curve: Curves.easeInOutCirc,
+          );
+        } else {
+          _mapController = AnimatedMapController(
+              vsync: this,
+              duration: const Duration(milliseconds: 1000),
+              curve: Curves.easeInOutCirc);
+        }
+
+        return FlutterMap(
+          mapController: _mapController!.mapController,
+          options: MapOptions(
+              zoom: 13,
+              maxZoom: 13,
+              minZoom: 8,
+              center: coord,
+              interactiveFlags: !widget.cityHasBeenSelected
+                  ? InteractiveFlag.drag | InteractiveFlag.pinchZoom
+                  : InteractiveFlag.none),
+          children: [
+            TileLayer(
+              urlTemplate: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+              userAgentPackageName: 'com.weatherapp.app',
+            )
+          ],
+        );
+      },
     );
   }
 }
@@ -201,7 +235,25 @@ class __SearchCityState extends State<_SearchCity> {
             ),
           ],
         ),
-        const MapPin()
+        const MapPin(),
+        Positioned(
+            bottom: 10,
+            right: 10,
+            child: InkWell(
+              onTap: Provider.of<AppStateManager>(context).getUserPosition,
+              splashColor: Colors.blue.shade900,
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(10),
+                    color: Theme.of(context).colorScheme.primary),
+                child: const Icon(
+                  Icons.gps_fixed_outlined,
+                  size: 35,
+                  color: Colors.white,
+                ),
+              ),
+            ))
       ],
     );
   }
@@ -250,7 +302,8 @@ class _CityWidget extends StatelessWidget {
           ),
           GestureDetector(
             onTap: () {
-              print(coordinates);
+              Provider.of<AppStateManager>(context, listen: false)
+                  .selectLocation(coordinates);
             },
             child: Text(
               "Ver clima",

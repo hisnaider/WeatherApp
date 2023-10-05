@@ -23,33 +23,7 @@ class _MapWeatherToogleState extends State<MapWeatherToogle> {
     return Stack(
       children: [
         widget.mapChild,
-        Visibility(
-          visible: widget.showBackground,
-          child: Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment(0, 0.75),
-                colors: [
-                  Theme.of(context).colorScheme.primary.withOpacity(0.40),
-                  Theme.of(context).colorScheme.primary,
-                ],
-              ),
-            ),
-            child: _fetchingData
-                ? Center(
-                    child: SizedBox(
-                      height: 100,
-                      width: 100,
-                      child: CircularProgressIndicator(
-                        color: Colors.white,
-                        strokeWidth: 5,
-                      ),
-                    ),
-                  )
-                : WeatherScreen(),
-          ),
-        )
+        Visibility(visible: widget.showBackground, child: SizedBox.shrink())
       ],
     );
   }
