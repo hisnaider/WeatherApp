@@ -3,6 +3,8 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:provider/provider.dart';
+import 'package:weather_app/class/app_state_manager.dart';
 
 class MapPin extends StatefulWidget {
   const MapPin({super.key});
@@ -37,8 +39,8 @@ class _MapPinState extends State<MapPin> with SingleTickerProviderStateMixin {
       CurvedAnimation(parent: _controller, curve: const Interval(0.25, 1)),
     );
     _controller.addListener(() {
-      setState(() {
-        print(_pinAnimation.value);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        setState(() {});
       });
     });
     super.initState();
@@ -48,55 +50,55 @@ class _MapPinState extends State<MapPin> with SingleTickerProviderStateMixin {
   Widget build(BuildContext context) {
     double pinY = lerpDouble(-37.5, -27.5, sineCurve(4))!;
     double h = lerpDouble(1, 2, sineCurve(4))!;
-    print(_controller.status == AnimationStatus.completed);
-    return GestureDetector(
-      onTap: () {
-        if (_controller.status == AnimationStatus.completed) {
+    return Selector<AppStateManager, bool>(
+      selector: (context, myState) => myState.cityHasBeenSelected,
+      shouldRebuild: (previous, next) => previous != next,
+      builder: (context, value, child) {
+        if (value) {
+          _controller.forward();
+        } else {
           _controller.reset();
         }
-        if (_controller.status != AnimationStatus.forward) {
-          _controller.forward();
-        }
-      },
-      child: Stack(
-        children: [
-          Opacity(
-            opacity: _opacity.value,
-            child: Transform.scale(
-              scale: _circleAnimation.value,
-              child: Center(
-                child: SvgPicture.string(
-                  """
-                  <svg height="22" width="62">
-                <ellipse cx="31" cy="11" rx="30" ry="10"
-                style="fill:transparent;stroke:#0085FF;stroke-width:2" />
-              </svg>
-                  """,
+        return Stack(
+          children: [
+            Opacity(
+              opacity: _opacity.value,
+              child: Transform.scale(
+                scale: _circleAnimation.value,
+                child: Center(
+                  child: SvgPicture.string(
+                    """
+                    <svg height="22" width="62">
+                  <ellipse cx="31" cy="11" rx="30" ry="10"
+                  style="fill:transparent;stroke:#0085FF;stroke-width:2" />
+                </svg>
+                    """,
+                  ),
                 ),
               ),
             ),
-          ),
-          Center(
-            child: SvgPicture.string(
-              """
-              <svg height="${2 * (2 * (h))}" width="${2 * (6 * h)}">
-                    <ellipse cx="${6 * h}" cy="${2 * (h)}" rx="${6 * h}" ry="${2 * (h)}" fill="black" fill-opacity="0.25"/>
-                  </svg>
-              """,
-            ),
-          ),
-          Center(
-            child: Transform.translate(
-              offset: Offset(0, pinY),
-              child: Icon(
-                Icons.location_on,
-                color: Theme.of(context).colorScheme.primary,
-                size: 70,
+            Center(
+              child: SvgPicture.string(
+                """
+                <svg height="${2 * (2 * (h))}" width="${2 * (6 * h)}">
+                      <ellipse cx="${6 * h}" cy="${2 * (h)}" rx="${6 * h}" ry="${2 * (h)}" fill="black" fill-opacity="0.25"/>
+                    </svg>
+                """,
               ),
             ),
-          ),
-        ],
-      ),
+            Center(
+              child: Transform.translate(
+                offset: Offset(0, pinY),
+                child: Icon(
+                  Icons.location_on,
+                  color: Theme.of(context).colorScheme.primary,
+                  size: 70,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }

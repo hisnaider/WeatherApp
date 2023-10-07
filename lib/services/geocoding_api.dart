@@ -23,9 +23,11 @@ class GeocodingAPI {
   /// message is returned
   Map<String, dynamic> decodeResponse(http.Response response) {
     var result = convert.jsonDecode(response.body);
+    print("qqq");
     if (response.statusCode == 200) {
-      return {"data": result as List<dynamic>};
+      return {...result[0]};
     }
+    print("eeee");
     return {
       "error": {"code": result["cod"], "message": result["message"]}
     };
@@ -54,7 +56,9 @@ class GeocodingAPI {
       return decodeResponse(response);
     } catch (e) {
       print(e);
-      return {"code": "unknown", "message": "Algo deu errado\n$e"};
+      return {
+        "error": {"code": "unknown", "message": "Algo deu errado\n$e"}
+      };
     }
   }
 
@@ -74,8 +78,8 @@ class GeocodingAPI {
       double lat, double lon) async {
     try {
       Uri uri = Uri.http(baseUrl, "/geo/1.0/reverse", {
-        "lat": lat,
-        "lon": lon,
+        "lat": lat.toString(),
+        "lon": lon.toString(),
         "limit": "3",
         "appid": apiKey,
       });
@@ -83,7 +87,9 @@ class GeocodingAPI {
       return decodeResponse(response);
     } catch (e) {
       print(e);
-      return {"code": "unknown", "message": "Algo deu errado\n$e"};
+      return {
+        "error": {"code": "unknown", "message": "Algo deu errado\n$e"}
+      };
     }
   }
 }

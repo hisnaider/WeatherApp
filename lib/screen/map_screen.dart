@@ -4,17 +4,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_animations/flutter_map_animations.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
 import 'package:weather_app/class/app_state_manager.dart';
 import 'package:weather_app/components/map_pin.dart';
 import 'package:weather_app/components/map_screen_background.dart';
-import 'package:weather_app/components/map_weather_toggle.dart';
 import 'package:weather_app/constants.dart';
-import 'package:weather_app/screen/weather_screen.dart';
 import 'package:weather_app/services/geocoding_api.dart';
-import 'package:weather_app/services/geolocator_api.dart';
+import 'package:weather_app/services/one_call_api.dart';
+
+AnimatedMapController? _mapController;
 
 /// The main widget representing the map screen.
 ///
@@ -23,7 +22,7 @@ import 'package:weather_app/services/geolocator_api.dart';
 /// search for a city, a floating button to obtain the current location, and a
 /// map for navigating to a specific city.
 ///
-/// If the [coordinates] parameter is not null, the WeatherScreen will display
+/// If a localization has been selected, the WeatherScreen will display
 /// the weather forecast for that location.
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
@@ -33,59 +32,50 @@ class MapScreen extends StatefulWidget {
 }
 
 class _MapScreenState extends State<MapScreen> {
-  bool _hasBeenInitialized = false;
-
-  bool _checkCitySelected() {
-    return false;
-  }
-
-  @override
-  void initState() {
-    _hasBeenInitialized = true;
-    super.initState();
+  /// Fetches weather forecast data and updates the app state.
+  ///
+  /// This function takes coordinates [coords] and citie information [data] as
+  /// parameters and performs the following steps:
+  ///
+  /// 1. If [data] is equal null, it uses the `getCityByCoordinate` function
+  ///    from `geocoding_api.dart` to retrieves city, state, and country.
+  /// 2. Gets the weather forecast using the `getWeather` function from
+  ///    `one_call_api.dart`.
+  /// 3. Combines the retrieved data and sets it in the `AppStateManager`.
+  ///
+  /// If any errors occur during these steps, an error message is displayed.
+  void setCityWeather(List<double> coords, {Map<String, dynamic>? data}) async {
+    data ??= await GeocodingAPI().getCityByCoordinate(coords[0], coords[1]);
+    if (data["error"] == null) {
+      data = {...data, ...await OneCallAPI().getWeather(coords[0], coords[1])};
+      if (data["error"] == null) {
+        Provider.of<AppStateManager>(context, listen: false).setWeather(data);
+      }
+    }
+    if (data["error"] != null) {
+      print(data["error"]);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (!_hasBeenInitialized) {
-      return const Scaffold(
-        body: Center(
-          child: SizedBox(
-            height: 150,
-            width: 150,
-            child: CircularProgressIndicator(),
-          ),
-        ),
-      );
-    }
     return Selector<AppStateManager, bool>(
-      selector: (context, myState) => myState.cityHasBeenSelected,
+      selector: (context, myState) => myState.data != null,
       builder: (context, value, child) {
-        return Scaffold(
-          body: MapWeatherToogle(
-            weatherChild: const SizedBox.shrink(),
-            showBackground: value,
-            mapChild: Stack(
-              children: [
-                _MapWidget(cityHasBeenSelected: value),
-                AnimatedSwitcher(
-                  duration: Duration(milliseconds: 500),
-                  child: SizedBox(
-                      key: ValueKey<bool>(value),
-                      child: value ? MapScreenBackground() : _SearchCity()),
-                ),
-                Align(
-                  alignment: Alignment.bottomCenter,
-                  child: ElevatedButton(
-                      onPressed: () {
-                        Provider.of<AppStateManager>(context, listen: false)
-                            .teste();
-                      },
-                      child: Text("asdasd")),
-                )
-              ],
+        return Stack(
+          children: [
+            _MapWidget(cityHasBeenSelected: value),
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 500),
+              child: SizedBox(
+                  key: ValueKey<bool>(value),
+                  child: value
+                      ? const MapScreenBackground()
+                      : _SearchCity(
+                          fetchPositionByCenteredPin: setCityWeather,
+                        )),
             ),
-          ),
+          ],
         );
       },
     );
@@ -103,7 +93,6 @@ class _MapScreenState extends State<MapScreen> {
 ///
 /// [cityHasBeenSelected]: A boolean value that indicates if a city has been
 /// selected, if it's true, the map won't be interactive
-
 class _MapWidget extends StatefulWidget {
   final bool cityHasBeenSelected;
   const _MapWidget({super.key, required this.cityHasBeenSelected});
@@ -113,8 +102,6 @@ class _MapWidget extends StatefulWidget {
 }
 
 class _MapWidgetState extends State<_MapWidget> with TickerProviderStateMixin {
-  AnimatedMapController? _mapController;
-
   @override
   Widget build(BuildContext context) {
     return Selector<AppStateManager, List<double>>(
@@ -158,13 +145,20 @@ class _MapWidgetState extends State<_MapWidget> with TickerProviderStateMixin {
 
 /// This widget represents a city search feature.
 ///
-/// It includes a text input field for users to search for cities, and a list
-/// of suggested cities with their respective states and countries.
+/// It includes a text input field for users to search for cities and a list
+/// of suggested cities with their respective states and countries, a pin in
+/// the center of the map, a button to get user's position using GPS, and a
+/// button to get the position that the centered pin is over.
 ///
 /// The user can enter a city name in the search field, and the widget will display
 /// a list of suggested cities, using [_CityWidget], based on the input.
+///
+/// parameters:
+/// [getPositionByCenteredPin]: Function to fetches weather forecast data and
+/// updates the app state.
 class _SearchCity extends StatefulWidget {
-  const _SearchCity({super.key});
+  final Function(List<double>) fetchPositionByCenteredPin;
+  const _SearchCity({super.key, required this.fetchPositionByCenteredPin});
 
   @override
   State<_SearchCity> createState() => __SearchCityState();
@@ -190,12 +184,27 @@ class __SearchCityState extends State<_SearchCity> {
     }
   }
 
+  /// Get the centered Pin coordinates over the map.
+  ///
+  /// It takes the centered pin coordinates, set it in the AppStateManager, and
+  /// then call function, and parameter of the class, `fetchPositionByCenteredPin`.
+  void _getCoordinateByCenteredPin() async {
+    List<double> coords = [
+      _mapController!.mapController.center.latitude,
+      _mapController!.mapController.center.longitude
+    ];
+    await Provider.of<AppStateManager>(context, listen: false)
+        .selectLocation([coords[0], coords[1]], 500);
+    widget.fetchPositionByCenteredPin(coords);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Stack(
       children: [
         Column(
           children: [
+            /// Text input to search cities
             Container(
               margin: const EdgeInsets.fromLTRB(10, 40, 10, 10),
               decoration: BoxDecoration(
@@ -211,6 +220,8 @@ class __SearchCityState extends State<_SearchCity> {
                 ),
               ),
             ),
+
+            /// Container of suggested cities
             Visibility(
               visible: _cities.isNotEmpty,
               child: Container(
@@ -235,24 +246,63 @@ class __SearchCityState extends State<_SearchCity> {
             ),
           ],
         ),
+
+        /// Pin in the center of the map
         const MapPin(),
+
+        /// Buttons
         Positioned(
             bottom: 10,
             right: 10,
-            child: InkWell(
-              onTap: Provider.of<AppStateManager>(context).getUserPosition,
-              splashColor: Colors.blue.shade900,
-              child: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(10),
-                    color: Theme.of(context).colorScheme.primary),
-                child: const Icon(
-                  Icons.gps_fixed_outlined,
-                  size: 35,
-                  color: Colors.white,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                /// Button to get user's position
+                RawMaterialButton(
+                  onPressed:
+                      Provider.of<AppStateManager>(context).getUserPosition,
+                  elevation: 5,
+                  constraints:
+                      const BoxConstraints(minWidth: 36.0, minHeight: 36.0),
+                  padding: const EdgeInsets.all(10),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10)),
+                  fillColor: Theme.of(context).colorScheme.primary,
+                  child: const Icon(
+                    Icons.gps_fixed_outlined,
+                    size: 30,
+                    color: Colors.white,
+                  ),
                 ),
-              ),
+                const SizedBox(height: 10),
+
+                /// Button to get centered pin position
+                RawMaterialButton(
+                  onPressed: _getCoordinateByCenteredPin,
+                  padding: const EdgeInsets.all(10),
+                  elevation: 5,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10)),
+                  fillColor: Theme.of(context).colorScheme.primary,
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.location_on,
+                        color: Colors.white,
+                        size: 35,
+                      ),
+                      const SizedBox(width: 5),
+                      Text(
+                        "Ver clima",
+                        style: Theme.of(context)
+                            .textTheme
+                            .titleMedium!
+                            .copyWith(color: Colors.white),
+                      ),
+                    ],
+                  ),
+                )
+              ],
             ))
       ],
     );
@@ -303,7 +353,7 @@ class _CityWidget extends StatelessWidget {
           GestureDetector(
             onTap: () {
               Provider.of<AppStateManager>(context, listen: false)
-                  .selectLocation(coordinates);
+                  .selectLocation(coordinates, 0);
             },
             child: Text(
               "Ver clima",

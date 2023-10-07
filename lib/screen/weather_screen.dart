@@ -29,7 +29,6 @@ class _WeatherScreenState extends State<WeatherScreen> {
 
   @override
   Widget build(BuildContext context) {
-    print("qqqqq");
     return Column(
       children: [
         const _CityName(name: "Rio Grande", state: "RS"),

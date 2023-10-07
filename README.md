@@ -23,10 +23,10 @@ This app is designed with a clean and friendly interface, making it easier for u
   - [X] Page widget;
   - [X] Four introduction step;
 - [X] Comunication with OpenWeather's API
-- [ ] Map screen;
+- [X] Map screen;
   - [X] Map and search widgets
   - [X] Search a city by name;
-  - [ ] Search a city using the map;
+  - [X] Search a city using the map;
   - [X] Get user's location using GPS;
 - [ ] Current forecast weather screen;
 - [X] Week forecast weather widget;
