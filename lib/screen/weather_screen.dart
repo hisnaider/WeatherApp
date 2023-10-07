@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:provider/provider.dart';
+import 'package:weather_app/class/app_state_manager.dart';
 import 'package:weather_app/components/daily_forecast_widget.dart';
 import 'package:weather_app/components/hourly_forecast_widget.dart';
+import 'package:weather_app/components/map_screen_background.dart';
 import 'package:weather_app/components/weather_detail.dart';
 import 'package:weather_app/enum/type_of_weather_detail.dart';
+import 'package:weather_app/utils.dart';
 
 class WeatherScreen extends StatefulWidget {
   const WeatherScreen({super.key});
@@ -29,16 +33,36 @@ class _WeatherScreenState extends State<WeatherScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        const _CityName(name: "Rio Grande", state: "RS"),
-        const _TemperatureWidget(),
-        _HourlyWidgetList(showHourlyForecast: _showHourlyForecast),
-        _WeatherDetails(
-          screenHeight: MediaQuery.of(context).size.height,
-          setShowHourlyForecast: _setShowHourlyForecast,
-        )
-      ],
+    return Selector<AppStateManager, Map<String, dynamic>?>(
+      selector: (context, myState) => myState.weatherData,
+      shouldRebuild: (previous, next) => previous != next,
+      builder: (context, value, child) {
+        if (value == null) {
+          Provider.of<AppStateManager>(context, listen: false).setWeather();
+        }
+        Map<String, dynamic>? currentWeather = value?["current"] ?? {};
+        return MapScreenBackground(
+            loading: value == null,
+            child: value != null
+                ? Column(
+                    children: [
+                      const _CityName(name: "Rio Grande", state: "RS"),
+                      _TemperatureWidget(
+                        description: currentWeather!["weather"][0]
+                            ["description"],
+                        iconCode: currentWeather["weather"][0]["id"],
+                        temperature: currentWeather["temp"],
+                      ),
+                      _HourlyWidgetList(
+                          showHourlyForecast: _showHourlyForecast),
+                      _WeatherDetails(
+                        screenHeight: MediaQuery.of(context).size.height,
+                        setShowHourlyForecast: _setShowHourlyForecast,
+                      )
+                    ],
+                  )
+                : SizedBox.shrink());
+      },
     );
   }
 }
@@ -47,11 +71,13 @@ class _CityName extends StatelessWidget {
   final String name;
   final String state;
   final DateTime? date;
-  const _CityName(
-      {super.key, required this.name, required this.state, this.date});
+  const _CityName({required this.name, required this.state, this.date});
 
   @override
   Widget build(BuildContext context) {
+    Map<String, dynamic>? city =
+        Provider.of<AppStateManager>(context, listen: false).locationName;
+    print(city);
     return Padding(
       padding: const EdgeInsets.fromLTRB(10, 45, 10, 0),
       child: Column(
@@ -62,7 +88,7 @@ class _CityName extends StatelessWidget {
               const Icon(Icons.location_on_rounded,
                   size: 18, color: Colors.white),
               Text(
-                "$name - $state",
+                "${city?["name"]} - ${city?["state"]}, ${city?["country"]}",
                 style: Theme.of(context).textTheme.titleMedium!.copyWith(
                     color: Colors.white,
                     fontWeight: FontWeight.w600,
@@ -91,7 +117,13 @@ class _CityName extends StatelessWidget {
 ///
 
 class _TemperatureWidget extends StatelessWidget {
-  const _TemperatureWidget({super.key});
+  final int iconCode;
+  final String description;
+  final double temperature;
+  const _TemperatureWidget(
+      {required this.iconCode,
+      required this.description,
+      required this.temperature});
 
   @override
   Widget build(BuildContext context) {
@@ -102,9 +134,9 @@ class _TemperatureWidget extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              SvgPicture.asset("svg/weather/clear_sky_day.svg"),
-              const Text(
-                "Céu limpo",
+              SvgPicture.asset(weatherIcon(iconCode)),
+              Text(
+                description[0].toUpperCase() + description.substring(1),
                 style: TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.w500,
@@ -112,8 +144,8 @@ class _TemperatureWidget extends StatelessWidget {
               )
             ],
           ),
-          const Text(
-            "23º",
+          Text(
+            "${temperature.toInt()}º",
             style: TextStyle(
                 color: Colors.white,
                 fontFamily: "Poppins",
@@ -136,7 +168,7 @@ class _TemperatureWidget extends StatelessWidget {
 
 class _HourlyWidgetList extends StatefulWidget {
   final bool showHourlyForecast;
-  const _HourlyWidgetList({super.key, required this.showHourlyForecast});
+  const _HourlyWidgetList({required this.showHourlyForecast});
 
   @override
   State<_HourlyWidgetList> createState() => __HourlyWidgetListState();
@@ -180,9 +212,7 @@ class _WeatherDetails extends StatefulWidget {
   final double screenHeight;
   final Function(double) setShowHourlyForecast;
   const _WeatherDetails(
-      {super.key,
-      required this.screenHeight,
-      required this.setShowHourlyForecast});
+      {required this.screenHeight, required this.setShowHourlyForecast});
 
   @override
   State<_WeatherDetails> createState() => __WeatherDetailsState();

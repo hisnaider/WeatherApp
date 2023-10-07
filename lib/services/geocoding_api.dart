@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print
+
 import 'dart:convert' as convert;
 
 import 'package:http/http.dart' as http;
@@ -25,9 +27,8 @@ class GeocodingAPI {
     var result = convert.jsonDecode(response.body);
     print("qqq");
     if (response.statusCode == 200) {
-      return {...result[0]};
+      return {"data": result as List<dynamic>};
     }
-    print("eeee");
     return {
       "error": {"code": result["cod"], "message": result["message"]}
     };
@@ -84,7 +85,7 @@ class GeocodingAPI {
         "appid": apiKey,
       });
       var response = await http.get(uri);
-      return decodeResponse(response);
+      return decodeResponse(response)["data"][0];
     } catch (e) {
       print(e);
       return {

@@ -39,8 +39,11 @@ class OneCallAPI {
         "error": {"code": result["cod"], "message": result["message"]}
       };
     } catch (e) {
+      // ignore: avoid_print
       print(e);
-      return {"code": "unknown", "message": "Algo deu errado\n$e"};
+      return {
+        "error": {"code": "unknown", "message": "Algo deu errado\n$e"}
+      };
     }
   }
 }

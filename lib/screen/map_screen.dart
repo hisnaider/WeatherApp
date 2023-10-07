@@ -1,7 +1,6 @@
-import 'dart:ui';
+// ignore_for_file: use_build_context_synchronously, avoid_print
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_animations/flutter_map_animations.dart';
 import 'package:latlong2/latlong.dart';
@@ -9,7 +8,8 @@ import 'package:provider/provider.dart';
 import 'package:weather_app/class/app_state_manager.dart';
 import 'package:weather_app/components/map_pin.dart';
 import 'package:weather_app/components/map_screen_background.dart';
-import 'package:weather_app/constants.dart';
+import 'package:weather_app/utils.dart';
+import 'package:weather_app/screen/weather_screen.dart';
 import 'package:weather_app/services/geocoding_api.dart';
 import 'package:weather_app/services/one_call_api.dart';
 
@@ -32,52 +32,25 @@ class MapScreen extends StatefulWidget {
 }
 
 class _MapScreenState extends State<MapScreen> {
-  /// Fetches weather forecast data and updates the app state.
-  ///
-  /// This function takes coordinates [coords] and citie information [data] as
-  /// parameters and performs the following steps:
-  ///
-  /// 1. If [data] is equal null, it uses the `getCityByCoordinate` function
-  ///    from `geocoding_api.dart` to retrieves city, state, and country.
-  /// 2. Gets the weather forecast using the `getWeather` function from
-  ///    `one_call_api.dart`.
-  /// 3. Combines the retrieved data and sets it in the `AppStateManager`.
-  ///
-  /// If any errors occur during these steps, an error message is displayed.
-  void setCityWeather(List<double> coords, {Map<String, dynamic>? data}) async {
-    data ??= await GeocodingAPI().getCityByCoordinate(coords[0], coords[1]);
-    if (data["error"] == null) {
-      data = {...data, ...await OneCallAPI().getWeather(coords[0], coords[1])};
-      if (data["error"] == null) {
-        Provider.of<AppStateManager>(context, listen: false).setWeather(data);
-      }
-    }
-    if (data["error"] != null) {
-      print(data["error"]);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    return Selector<AppStateManager, bool>(
-      selector: (context, myState) => myState.data != null,
-      builder: (context, value, child) {
-        return Stack(
-          children: [
-            _MapWidget(cityHasBeenSelected: value),
-            AnimatedSwitcher(
-              duration: const Duration(milliseconds: 500),
-              child: SizedBox(
-                  key: ValueKey<bool>(value),
-                  child: value
-                      ? const MapScreenBackground()
-                      : _SearchCity(
-                          fetchPositionByCenteredPin: setCityWeather,
-                        )),
-            ),
-          ],
-        );
-      },
+    return Scaffold(
+      body: Selector<AppStateManager, bool>(
+        selector: (context, myState) => myState.cityHasBeenSelected,
+        builder: (context, value, child) {
+          return Stack(
+            children: [
+              _MapWidget(cityHasBeenSelected: value),
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 500),
+                child: SizedBox(
+                    key: ValueKey<bool>(value),
+                    child: value ? const WeatherScreen() : const _SearchCity()),
+              ),
+            ],
+          );
+        },
+      ),
     );
   }
 }
@@ -95,7 +68,7 @@ class _MapScreenState extends State<MapScreen> {
 /// selected, if it's true, the map won't be interactive
 class _MapWidget extends StatefulWidget {
   final bool cityHasBeenSelected;
-  const _MapWidget({super.key, required this.cityHasBeenSelected});
+  const _MapWidget({required this.cityHasBeenSelected});
 
   @override
   State<_MapWidget> createState() => _MapWidgetState();
@@ -152,13 +125,8 @@ class _MapWidgetState extends State<_MapWidget> with TickerProviderStateMixin {
 ///
 /// The user can enter a city name in the search field, and the widget will display
 /// a list of suggested cities, using [_CityWidget], based on the input.
-///
-/// parameters:
-/// [getPositionByCenteredPin]: Function to fetches weather forecast data and
-/// updates the app state.
 class _SearchCity extends StatefulWidget {
-  final Function(List<double>) fetchPositionByCenteredPin;
-  const _SearchCity({super.key, required this.fetchPositionByCenteredPin});
+  const _SearchCity();
 
   @override
   State<_SearchCity> createState() => __SearchCityState();
@@ -166,28 +134,35 @@ class _SearchCity extends StatefulWidget {
 
 class __SearchCityState extends State<_SearchCity> {
   /// List of searched cities
-  List<dynamic> _cities = [];
+  List<dynamic> _listOfSearchedCities = [];
 
   /// Function to search cities by name
+  ///
+  /// This function takes city name [city] as parameter
+  ///
+  /// It calls `getCityByName` function, with [city] as parameter, from
+  /// `geocoding_api.dart` to fetch a list of cities, than set it in
+  /// [_listOfSearchedCities cities]. If [city] is empty, [_listOfSearchedCities]
+  /// will be set as empty.
   void searchCityByName(String city) async {
     if (city.trim() != "") {
       var findedCities = await GeocodingAPI().getCityByName(city);
+      print(findedCities);
       if (findedCities["data"] != null) {
         setState(() {
-          _cities = findedCities["data"];
+          _listOfSearchedCities = findedCities["data"];
         });
       }
     } else {
       setState(() {
-        _cities = [];
+        _listOfSearchedCities = [];
       });
     }
   }
 
   /// Get the centered Pin coordinates over the map.
   ///
-  /// It takes the centered pin coordinates, set it in the AppStateManager, and
-  /// then call function, and parameter of the class, `fetchPositionByCenteredPin`.
+  /// It takes the centered pin coordinates and set it in the AppStateManager.
   void _getCoordinateByCenteredPin() async {
     List<double> coords = [
       _mapController!.mapController.center.latitude,
@@ -195,7 +170,6 @@ class __SearchCityState extends State<_SearchCity> {
     ];
     await Provider.of<AppStateManager>(context, listen: false)
         .selectLocation([coords[0], coords[1]], 500);
-    widget.fetchPositionByCenteredPin(coords);
   }
 
   @override
@@ -223,7 +197,7 @@ class __SearchCityState extends State<_SearchCity> {
 
             /// Container of suggested cities
             Visibility(
-              visible: _cities.isNotEmpty,
+              visible: _listOfSearchedCities.isNotEmpty,
               child: Container(
                 margin: const EdgeInsets.symmetric(horizontal: 10),
                 padding:
@@ -233,12 +207,15 @@ class __SearchCityState extends State<_SearchCity> {
                     color: Colors.white),
                 child: Column(
                   children: [
-                    for (int i = 0; i < _cities.length; i++) ...[
+                    for (int i = 0; i < _listOfSearchedCities.length; i++) ...[
                       _CityWidget(
-                          city: _cities[i]["name"],
-                          uf: _cities[i]["state"],
-                          country: _cities[i]["country"],
-                          coordinates: [_cities[i]["lat"], _cities[i]["lon"]]),
+                          city: _listOfSearchedCities[i]["name"],
+                          uf: _listOfSearchedCities[i]["state"],
+                          country: _listOfSearchedCities[i]["country"],
+                          coordinates: [
+                            _listOfSearchedCities[i]["lat"],
+                            _listOfSearchedCities[i]["lon"]
+                          ]),
                     ]
                   ],
                 ),
@@ -260,7 +237,7 @@ class __SearchCityState extends State<_SearchCity> {
                 /// Button to get user's position
                 RawMaterialButton(
                   onPressed:
-                      Provider.of<AppStateManager>(context).getUserPosition,
+                      Provider.of<AppStateManager>(context).setUserPosition,
                   elevation: 5,
                   constraints:
                       const BoxConstraints(minWidth: 36.0, minHeight: 36.0),
@@ -323,8 +300,7 @@ class _CityWidget extends StatelessWidget {
   final String country;
   final List<double> coordinates;
   const _CityWidget(
-      {super.key,
-      required this.city,
+      {required this.city,
       required this.uf,
       required this.country,
       required this.coordinates});

@@ -12,7 +12,7 @@ class DailyForecastWidget extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           SvgPicture.asset("svg/weather/clear_sky_day.svg"),
-          SizedBox(width: 10),
+          const SizedBox(width: 10),
           Column(
             children: [
               Text(
@@ -31,7 +31,7 @@ class DailyForecastWidget extends StatelessWidget {
               )
             ],
           ),
-          SizedBox(width: 10),
+          const SizedBox(width: 10),
           Column(
             children: [
               Text(
@@ -50,7 +50,7 @@ class DailyForecastWidget extends StatelessWidget {
               )
             ],
           ),
-          SizedBox(width: 10),
+          const SizedBox(width: 10),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.end,

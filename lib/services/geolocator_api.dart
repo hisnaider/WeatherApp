@@ -27,6 +27,7 @@ class GeolocatorAPI {
       Position position = await Geolocator.getCurrentPosition();
       return {"data": position};
     } catch (e) {
+      // ignore: avoid_print
       print(e);
       return {"error": e};
     }

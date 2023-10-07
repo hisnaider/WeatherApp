@@ -72,7 +72,7 @@ class IntroductionScreen extends StatelessWidget {
 /// a step indicator to track the progress.
 class _PageList extends StatefulWidget {
   final List<_Page> pages;
-  const _PageList({super.key, required this.pages});
+  const _PageList({required this.pages});
 
   @override
   State<_PageList> createState() => _PageListState();
@@ -139,14 +139,14 @@ class _PageListState extends State<_PageList> {
             nextStep: () {
               controller.animateToPage(
                 steps + 1,
-                duration: Duration(milliseconds: 250),
+                duration: const Duration(milliseconds: 250),
                 curve: Curves.easeInOut,
               );
             },
             previousStep: () {
               controller.animateToPage(
                 steps - 1,
-                duration: Duration(milliseconds: 250),
+                duration: const Duration(milliseconds: 250),
                 curve: Curves.easeInOut,
               );
             },
@@ -171,8 +171,7 @@ class _Page extends StatelessWidget {
   final String text;
   final bool showBackground;
   const _Page(
-      {super.key,
-      required this.title,
+      {required this.title,
       required this.text,
       required this.widget,
       required this.showBackground});
@@ -237,8 +236,7 @@ class _StepsIndicator extends StatelessWidget {
   final VoidCallback nextStep;
   final VoidCallback previousStep;
   const _StepsIndicator(
-      {super.key,
-      required this.currentStep,
+      {required this.currentStep,
       required this.numberOfSteps,
       required this.isFirstStep,
       required this.isLastStep,

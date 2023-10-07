@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:weather_app/class/app_state_manager.dart';
-import 'package:weather_app/screen/introduction.dart';
 import 'package:weather_app/screen/map_screen.dart';
-import 'package:weather_app/screen/splash_screen.dart';
 
 void main() {
   runApp(
@@ -24,13 +22,13 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
-        floatingActionButtonTheme: FloatingActionButtonThemeData(
-          backgroundColor: const Color.fromRGBO(0, 133, 255, 1),
+        floatingActionButtonTheme: const FloatingActionButtonThemeData(
+          backgroundColor: Color.fromRGBO(0, 133, 255, 1),
           sizeConstraints: BoxConstraints.tightFor(height: 65, width: 65),
           shape: CircleBorder(),
           iconSize: 35,
         ),
-        textTheme: TextTheme(
+        textTheme: const TextTheme(
           titleLarge: TextStyle(
             fontFamily: "Poppins",
             fontSize: 24,

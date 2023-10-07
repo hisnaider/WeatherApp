@@ -6,6 +6,11 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import 'package:weather_app/class/app_state_manager.dart';
 
+/// This widget represents the centered pin over the map.
+///
+/// It includes a icon in svg and a animation. The animation is triggered when
+/// the variable `cityHasBeenSelected`, that is in the global state
+/// manager `AppStateManager`, is true
 class MapPin extends StatefulWidget {
   const MapPin({super.key});
 
@@ -19,16 +24,26 @@ class _MapPinState extends State<MapPin> with SingleTickerProviderStateMixin {
   late Animation<double> _circleAnimation;
   late Animation<double> _opacity;
 
+  /// Calculates the value of a custom sine wave curve.
+  ///
+  /// This function takes a [time] parameter representing time.
+  /// It calculates and returns the value of a custom sine wave curve
+  /// used to control the animation of a widget.
+  ///
+  /// The returned value is in the range of 0 to 1 and is used to adjust
+  /// the animation according to the desired curve.
   double sineCurve(double time) {
     double value = sin(pi * (_pinAnimation.value * time)).abs();
     return value;
   }
 
+  /// Initialize function
+  ///
+  /// This function sets the animations
   @override
   void initState() {
-    // TODO: implement initState
-    _controller =
-        AnimationController(duration: Duration(milliseconds: 500), vsync: this);
+    _controller = AnimationController(
+        duration: const Duration(milliseconds: 500), vsync: this);
     _pinAnimation = Tween<double>(begin: 0, end: 0.25).animate(
       CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
     );

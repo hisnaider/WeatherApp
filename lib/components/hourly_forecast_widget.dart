@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class HourlyForecastWidget extends StatelessWidget {
@@ -16,7 +15,7 @@ class HourlyForecastWidget extends StatelessWidget {
             "14:00",
             style: Theme.of(context).textTheme.labelMedium!.copyWith(
                 fontWeight: FontWeight.w700,
-                color: Color.fromRGBO(255, 255, 255, 0.5)),
+                color: const Color.fromRGBO(255, 255, 255, 0.5)),
           ),
           Text(
             "23º",
