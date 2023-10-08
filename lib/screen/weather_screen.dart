@@ -46,38 +46,65 @@ class _WeatherScreenState extends State<WeatherScreen> {
             child: value != null
                 ? Column(
                     children: [
-                      const _CityName(name: "Rio Grande", state: "RS"),
+                      _CityName(
+                        date: currentWeather!["dt"],
+                      ),
                       _TemperatureWidget(
-                        description: currentWeather!["weather"][0]
+                        description: currentWeather["weather"][0]
                             ["description"],
-                        iconCode: currentWeather["weather"][0]["id"],
-                        temperature: currentWeather["temp"],
+                        weatherId: currentWeather["weather"][0]["id"],
+                        temperature: currentWeather["temp"].toDouble(),
                       ),
                       _HourlyWidgetList(
+                          hourlyWeatherForecast: value["hourly"],
                           showHourlyForecast: _showHourlyForecast),
                       _WeatherDetails(
+                        currentWeather: currentWeather,
+                        dailyWeather: value["daily"],
                         screenHeight: MediaQuery.of(context).size.height,
                         setShowHourlyForecast: _setShowHourlyForecast,
                       )
                     ],
                   )
-                : SizedBox.shrink());
+                : const SizedBox.shrink());
       },
     );
   }
 }
 
 class _CityName extends StatelessWidget {
-  final String name;
-  final String state;
-  final DateTime? date;
-  const _CityName({required this.name, required this.state, this.date});
+  /// This widget represents the location and forecast date information
+  ///
+  /// It takes [date] as parameter;
+  ///
+  /// parameters:
+  /// [date]: Date of the last time that weather forecast has been registered.
+  const _CityName({required this.date});
+  final int date;
+
+  /// This function format the [date] into a redeable date.
+  ///
+  /// It takes [date] as as parameter and performs the following steps:
+  /// 1. Get current date and transform [date] into a DateTime;
+  /// 2. Calls the function `getTemporalDescription` from `utils.dart` to get
+  ///    how many days had passed since the last weather forecast date;
+  /// 3. Get just the hour and minutes of [date];
+  /// 4. Returns the date in the format "tanto tempo atras, 'dia' de 'mês' de
+  ///    'ano', 'hora':'minuto'"
+  String formatForecastTime(int date) {
+    DateTime currentDate = DateTime.now();
+    DateTime forecastDate = DateTime.fromMillisecondsSinceEpoch(date * 1000);
+    String daysPassed =
+        getTemporalDescription(currentDate.difference(forecastDate).inDays);
+    String hour = forecastDate.hour.toString().padLeft(2, "0");
+    String minute = forecastDate.minute.toString().padLeft(2, "0");
+    return "$daysPassed, ${forecastDate.day} de ${months[forecastDate.month]} de ${forecastDate.year}, $hour:$minute";
+  }
 
   @override
   Widget build(BuildContext context) {
     Map<String, dynamic>? city =
         Provider.of<AppStateManager>(context, listen: false).locationName;
-    print(city);
     return Padding(
       padding: const EdgeInsets.fromLTRB(10, 45, 10, 0),
       child: Column(
@@ -97,7 +124,7 @@ class _CityName extends StatelessWidget {
             ],
           ),
           Text(
-            "Hoje, 25 de Setembro de 2023, 12:00",
+            formatForecastTime(date),
             style: Theme.of(context)
                 .textTheme
                 .bodyMedium!
@@ -117,13 +144,21 @@ class _CityName extends StatelessWidget {
 ///
 
 class _TemperatureWidget extends StatelessWidget {
-  final int iconCode;
-  final String description;
-  final double temperature;
+  /// This widget represents the centered temperature
+  ///
+  /// It takes [weatherId], [description] and [temperature] as parameters
+  ///
+  /// parameters:
+  /// [weatherId]: Id that identifies the weather;
+  /// [description]: A short description of the weather;
+  /// [temperature]: Current temperature.
   const _TemperatureWidget(
-      {required this.iconCode,
+      {required this.weatherId,
       required this.description,
       required this.temperature});
+  final int weatherId;
+  final String description;
+  final double temperature;
 
   @override
   Widget build(BuildContext context) {
@@ -134,10 +169,10 @@ class _TemperatureWidget extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              SvgPicture.asset(weatherIcon(iconCode)),
+              SvgPicture.asset(weatherIcon(weatherId, DateTime.now().hour)),
               Text(
                 description[0].toUpperCase() + description.substring(1),
-                style: TextStyle(
+                style: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.w500,
                     fontSize: 18),
@@ -146,7 +181,7 @@ class _TemperatureWidget extends StatelessWidget {
           ),
           Text(
             "${temperature.toInt()}º",
-            style: TextStyle(
+            style: const TextStyle(
                 color: Colors.white,
                 fontFamily: "Poppins",
                 fontSize: 100,
@@ -166,38 +201,48 @@ class _TemperatureWidget extends StatelessWidget {
 ///
 ///
 
-class _HourlyWidgetList extends StatefulWidget {
+class _HourlyWidgetList extends StatelessWidget {
+  /// This widget represents the row of hourly forecast weather
+  ///
+  /// It takes [showHourlyForecast] and [hourlyWeatherForecast] as parameters
+  ///
+  /// Parameters:
+  /// [showHourlyForecast]: determines if this widget should be visible;
+  /// [hourlyWeatherForecast]: list of hourly forecast weather;
+  const _HourlyWidgetList(
+      {required this.showHourlyForecast, required this.hourlyWeatherForecast});
   final bool showHourlyForecast;
-  const _HourlyWidgetList({required this.showHourlyForecast});
+  final List<dynamic> hourlyWeatherForecast;
 
-  @override
-  State<_HourlyWidgetList> createState() => __HourlyWidgetListState();
-}
-
-class __HourlyWidgetListState extends State<_HourlyWidgetList> {
   @override
   Widget build(BuildContext context) {
     return AnimatedCrossFade(
-        crossFadeState: widget.showHourlyForecast
-            ? CrossFadeState.showFirst
-            : CrossFadeState.showSecond,
-        duration: const Duration(milliseconds: 250),
-        firstChild: const Padding(
-          padding: EdgeInsets.symmetric(vertical: 10),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              HourlyForecastWidget(),
-              HourlyForecastWidget(),
-              HourlyForecastWidget(),
-              HourlyForecastWidget()
-            ],
-          ),
+      crossFadeState: showHourlyForecast
+          ? CrossFadeState.showFirst
+          : CrossFadeState.showSecond,
+      duration: const Duration(milliseconds: 250),
+      firstChild: SizedBox(
+        height: 113,
+        width: double.infinity,
+        child: ListView.builder(
+          scrollDirection: Axis.horizontal,
+          itemCount: hourlyWeatherForecast.length,
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          itemBuilder: (context, index) {
+            var forecast = hourlyWeatherForecast[index];
+            return HourlyForecastWidget(
+              weatherId: forecast["weather"][0]["id"],
+              temperature: forecast["temp"].toDouble(),
+              date: DateTime.fromMillisecondsSinceEpoch(forecast["dt"] * 1000),
+            );
+          },
         ),
-        secondChild: const Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [],
-        ));
+      ),
+      secondChild: const Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [],
+      ),
+    );
   }
 }
 
@@ -211,8 +256,13 @@ class __HourlyWidgetListState extends State<_HourlyWidgetList> {
 class _WeatherDetails extends StatefulWidget {
   final double screenHeight;
   final Function(double) setShowHourlyForecast;
+  final Map<String, dynamic> currentWeather;
+  final List<dynamic> dailyWeather;
   const _WeatherDetails(
-      {required this.screenHeight, required this.setShowHourlyForecast});
+      {required this.screenHeight,
+      required this.setShowHourlyForecast,
+      required this.currentWeather,
+      required this.dailyWeather});
 
   @override
   State<_WeatherDetails> createState() => __WeatherDetailsState();
@@ -244,14 +294,6 @@ class __WeatherDetailsState extends State<_WeatherDetails> {
     setState(() {
       containerHeight = currentHeight;
     });
-  }
-
-  void init() {}
-
-  @override
-  void initState() {
-    init();
-    super.initState();
   }
 
   @override
@@ -297,7 +339,7 @@ class __WeatherDetailsState extends State<_WeatherDetails> {
                   "O tempo agora",
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
-                const Padding(
+                Padding(
                   padding: EdgeInsets.symmetric(vertical: 10),
                   child: Wrap(
                     runSpacing: 5,
@@ -305,18 +347,27 @@ class __WeatherDetailsState extends State<_WeatherDetails> {
                     clipBehavior: Clip.hardEdge,
                     children: [
                       WeatherDetail(
-                          weather: TypeOfWeatherDetail.feelsLike, value: "20"),
+                          weather: TypeOfWeatherDetail.feelsLike,
+                          value:
+                              widget.currentWeather["feels_like"].toString()),
                       WeatherDetail(
-                          weather: TypeOfWeatherDetail.wind, value: "12"),
+                          weather: TypeOfWeatherDetail.wind,
+                          value:
+                              widget.currentWeather["wind_speed"].toString()),
                       WeatherDetail(
-                          weather: TypeOfWeatherDetail.cloud, value: "53"),
+                          weather: TypeOfWeatherDetail.cloud,
+                          value: widget.currentWeather["clouds"].toString()),
                       WeatherDetail(
                           weather: TypeOfWeatherDetail.precipitation,
-                          value: "1"),
+                          value:
+                              widget.currentWeather["rain"]?["1h"].toString() ??
+                                  "0"),
                       WeatherDetail(
-                          weather: TypeOfWeatherDetail.uvi, value: "0.16"),
+                          weather: TypeOfWeatherDetail.uvi,
+                          value: widget.currentWeather["uvi"].toString()),
                       WeatherDetail(
-                          weather: TypeOfWeatherDetail.humidity, value: "0")
+                          weather: TypeOfWeatherDetail.humidity,
+                          value: widget.currentWeather["humidity"].toString())
                     ],
                   ),
                 ),
@@ -333,10 +384,18 @@ class __WeatherDetailsState extends State<_WeatherDetails> {
                 ),
                 Expanded(
                     child: ListView.builder(
-                  padding: EdgeInsetsDirectional.zero,
-                  itemCount: 7,
+                  padding: EdgeInsetsDirectional.only(bottom: 50),
+                  itemCount: widget.dailyWeather.length,
                   itemBuilder: (context, index) {
-                    return const DailyForecastWidget();
+                    Map<String, dynamic> daily = widget.dailyWeather[index];
+
+                    return DailyForecastWidget(
+                      date: DateTime.fromMillisecondsSinceEpoch(
+                          daily["dt"] * 1000),
+                      maxTemperature: daily["temp"]["max"],
+                      minTemperature: daily["temp"]["min"],
+                      weatherId: daily["weather"][0]["id"],
+                    );
                   },
                 ))
               ],

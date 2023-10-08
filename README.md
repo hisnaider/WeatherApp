@@ -14,7 +14,7 @@ This app is designed with a clean and friendly interface, making it easier for u
 
 ## 🔨 Functionalities
 - `Search city`: 3 ways to search for a city: by name, using the map or by device's GPS;
-- `Current forecast weather`: Temperature, feels like temperature, weather conditions, cloud and humidity percentages, UV index, wind speed, precipitation, and hourly weather and temperature forecasts for the next 8 hours;
+- `Current forecast weather`: Temperature, feels like temperature, weather conditions, cloud and humidity percentages, UV index, wind speed, precipitation, and hourly weather and temperature forecasts for the next 24 hours;
 - `Week forecast weather`: Weather conditions, minimum and maximum temperatures for the next 7 days.
 
 ## Roadmap
@@ -28,8 +28,9 @@ This app is designed with a clean and friendly interface, making it easier for u
   - [X] Search a city by name;
   - [X] Search a city using the map;
   - [X] Get user's location using GPS;
-- [ ] Current forecast weather screen;
+- [X] Current forecast weather screen;
 - [X] Week forecast weather widget;
+- [ ] Error treatment.
 
 
 ## How to run the project

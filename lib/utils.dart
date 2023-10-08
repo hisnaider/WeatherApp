@@ -11,8 +11,7 @@ InputDecoration kTextFieldDecoration = InputDecoration(
       borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
 );
 
-String weatherIcon(int code) {
-  int hour = DateTime.now().hour;
+String weatherIcon(int code, int hour) {
   switch (code) {
     case >= 200 && < 300:
       return "svg/weather/thunderstorm.svg";
@@ -32,6 +31,7 @@ String weatherIcon(int code) {
     case >= 701 && < 800:
       return "svg/weather/mist.svg";
     case 800:
+      print(hour);
       if (hour < 18 && hour >= 6) {
         return "svg/weather/clear_sky_day.svg";
       }
@@ -43,9 +43,59 @@ String weatherIcon(int code) {
       return "svg/weather/few_clouds_night.svg";
     case 802:
       return "svg/weather/scattered_clouds.svg";
-    case 803 && 804:
+    case 803 || 804:
       return "svg/weather/broken_clouds.svg";
     default:
       return "";
   }
 }
+
+String getTemporalDescription(int days) {
+  switch (days) {
+    case 0:
+      return "Hoje";
+    case 1:
+      return "Ontem";
+    case > 1 && < 7:
+      return "Essa semana";
+    case >= 7 && < 14:
+      return "Há mais de uma semana";
+    case >= 14 && < 30:
+      return "Há algumas semanas";
+    case >= 30 && < 60:
+      return "Há mais de um mês";
+    case >= 60 && < 365:
+      return "Há alguns meses";
+    case >= 365 && < 730:
+      return "Há mais de um ano";
+    case >= 730:
+      return "Há alguns anos";
+    default:
+      return "Tempo indeterminado";
+  }
+}
+
+const Map<int, String> months = {
+  1: "Janeiro",
+  2: "Fevereiro",
+  3: "Março",
+  4: "Abril",
+  5: "Maio",
+  6: "Junho",
+  7: "Julho",
+  8: "Agosto",
+  9: "Setembro",
+  10: "Outubro",
+  11: "Novembro",
+  12: "Dezembro",
+};
+
+const Map<int, String> weekDay = {
+  1: "Segunda-feira",
+  2: "Terça-feira",
+  3: "Quarta-feira",
+  4: "Quinta-feira",
+  5: "Sexta-feira",
+  6: "Sábado",
+  7: "Domingo",
+};

@@ -33,6 +33,8 @@ class OneCallAPI {
       var response = await http.get(uri);
       var result = convert.jsonDecode(response.body);
       if (response.statusCode == 200) {
+        result["daily"].removeAt(0);
+        result["hourly"] = result["hourly"].sublist(1, 25);
         return {...result as Map<String, dynamic>};
       }
       return {
