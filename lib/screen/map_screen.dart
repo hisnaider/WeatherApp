@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_animations/flutter_map_animations.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
 import 'package:weather_app/class/app_state_manager.dart';
@@ -147,7 +148,6 @@ class __SearchCityState extends State<_SearchCity> {
   void searchCityByName(String city) async {
     if (city.trim() != "") {
       var findedCities = await GeocodingAPI().getCityByName(city);
-      print(findedCities);
       if (findedCities["data"] != null) {
         setState(() {
           _listOfSearchedCities = findedCities["data"];
@@ -169,7 +169,7 @@ class __SearchCityState extends State<_SearchCity> {
       _mapController!.mapController.center.longitude
     ];
     await Provider.of<AppStateManager>(context, listen: false)
-        .selectLocation([coords[0], coords[1]], 500);
+        .selectLocation([coords[0], coords[1]], 0);
   }
 
   @override
@@ -225,7 +225,9 @@ class __SearchCityState extends State<_SearchCity> {
         ),
 
         /// Pin in the center of the map
-        const MapPin(),
+        MapPin(
+          iconColor: Theme.of(context).colorScheme.primary,
+        ),
 
         /// Buttons
         Positioned(

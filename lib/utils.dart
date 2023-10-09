@@ -11,17 +11,33 @@ InputDecoration kTextFieldDecoration = InputDecoration(
       borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
 );
 
+enum TypeOfWeatherDetail {
+  cloud("Nuvens", "svg/weather_details/cloud_percentage.svg", "%"),
+  feelsLike("Sensação", "svg/weather_details/feels_like.svg", "º"),
+  humidity("Umidade", "svg/weather_details/humidity_percentage.svg", "%"),
+  precipitation(
+      "Precipitação", "svg/weather_details/precipitation.svg", " mm/h"),
+  uvi("Índice UV", "svg/weather_details/uvi_index.svg", ""),
+  wind("Vento", "svg/weather_details/wind_speed.svg", " Km/h");
+
+  const TypeOfWeatherDetail(this.title, this.icon, this.typeOfValue);
+  final String title;
+  final String icon;
+  final String typeOfValue;
+}
+
 String weatherIcon(int code, int hour) {
+  bool isNight = hour >= 18 || hour < 6;
   switch (code) {
     case >= 200 && < 300:
       return "svg/weather/thunderstorm.svg";
     case >= 300 && < 500:
       return "svg/weather/rain.svg";
     case >= 500 && < 511:
-      if (hour < 18 && hour >= 6) {
-        return "svg/weather/light_rain_day.svg";
+      if (isNight) {
+        return "svg/weather/light_rain_night.svg";
       }
-      return "svg/weather/light_rain_night.svg";
+      return "svg/weather/light_rain_day.svg";
     case 511:
       return "svg/weather/snow.svg";
     case >= 520 && < 600:
@@ -31,16 +47,15 @@ String weatherIcon(int code, int hour) {
     case >= 701 && < 800:
       return "svg/weather/mist.svg";
     case 800:
-      print(hour);
-      if (hour < 18 && hour >= 6) {
-        return "svg/weather/clear_sky_day.svg";
+      if (isNight) {
+        return "svg/weather/clear_sky_night.svg";
       }
-      return "svg/weather/clear_sky_night.svg";
+      return "svg/weather/clear_sky_day.svg";
     case 801:
-      if (hour < 18 && hour >= 6) {
-        return "svg/weather/few_clouds_day.svg";
+      if (isNight) {
+        return "svg/weather/few_clouds_night.svg";
       }
-      return "svg/weather/few_clouds_night.svg";
+      return "svg/weather/few_clouds_day.svg";
     case 802:
       return "svg/weather/scattered_clouds.svg";
     case 803 || 804:

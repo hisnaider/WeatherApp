@@ -6,7 +6,6 @@ import 'package:weather_app/components/daily_forecast_widget.dart';
 import 'package:weather_app/components/hourly_forecast_widget.dart';
 import 'package:weather_app/components/map_screen_background.dart';
 import 'package:weather_app/components/weather_detail.dart';
-import 'package:weather_app/enum/type_of_weather_detail.dart';
 import 'package:weather_app/utils.dart';
 
 class WeatherScreen extends StatefulWidget {
@@ -114,12 +113,15 @@ class _CityName extends StatelessWidget {
             children: [
               const Icon(Icons.location_on_rounded,
                   size: 18, color: Colors.white),
-              Text(
-                "${city?["name"]} - ${city?["state"]}, ${city?["country"]}",
-                style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w600,
-                    height: 0.2),
+              Expanded(
+                child: Text(
+                  "${city?["name"]} - ${city?["state"]}, ${city?["country"]}",
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.titleMedium!.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                      ),
+                ),
               ),
             ],
           ),
@@ -367,7 +369,7 @@ class __WeatherDetailsState extends State<_WeatherDetails> {
                           value: widget.currentWeather["uvi"].toString()),
                       WeatherDetail(
                           weather: TypeOfWeatherDetail.humidity,
-                          value: widget.currentWeather["humidity"].toString())
+                          value: widget.currentWeather["humidity"].toString()),
                     ],
                   ),
                 ),

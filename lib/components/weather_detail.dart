@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:weather_app/enum/type_of_weather_detail.dart';
+import 'package:weather_app/utils.dart';
 
 class WeatherDetail extends StatelessWidget {
   final TypeOfWeatherDetail weather;
