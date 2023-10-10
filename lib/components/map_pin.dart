@@ -55,7 +55,7 @@ class _MapPinState extends State<MapPin> with SingleTickerProviderStateMixin {
     if (widget.animate) {
       _controller = AnimationController(
           duration: const Duration(milliseconds: 500), vsync: this)
-        ..forward();
+        ..repeat();
       _pinAnimation = Tween<double>(begin: 0, end: 0.25).animate(
         CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
       );
@@ -65,25 +65,26 @@ class _MapPinState extends State<MapPin> with SingleTickerProviderStateMixin {
       _opacity = Tween<double>(begin: 1, end: 0).animate(
         CurvedAnimation(parent: _controller, curve: const Interval(0.25, 1)),
       );
-      _controller.addStatusListener((status) {
-        if (_controller.isCompleted) {
-          _controller.reset();
-        } else if (_controller.isDismissed) {
-          _controller.forward();
-        }
-      });
       _controller.addListener(() {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          setState(() {
-            pinY = lerpDouble(-37.5, -29.5, sineCurve(4))!;
-            h = lerpDouble(1, 2, sineCurve(4))!;
-            opacity = _opacity.value;
-            circleScale = _circleScale.value;
-          });
+        setState(() {
+          pinY = lerpDouble(-37.5, -29.5, sineCurve(4))!;
+          h = lerpDouble(1, 2, sineCurve(4))!;
+          opacity = _opacity.value;
+          circleScale = _circleScale.value;
         });
       });
     }
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    if (widget.animate) {
+      _controller.stop();
+      _controller.dispose();
+    }
+    super.dispose();
   }
 
   @override

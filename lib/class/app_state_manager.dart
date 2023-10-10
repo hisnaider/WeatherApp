@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:weather_app/main.dart';
 import 'package:weather_app/services/geocoding_api.dart';
 import 'package:weather_app/services/geolocator_api.dart';
 import 'package:weather_app/services/one_call_api.dart';
@@ -72,24 +73,34 @@ class AppStateManager extends ChangeNotifier {
   /// It takes coordinates [coords] and time [time] as parameters.
   ///
   /// If any location has not been selected, the function set the coordinates
-  /// [coords] in [_coordinates] and set [_cityHasBeenSelected] as true. If
-  /// a delay is needed, the parameter [time] defines in milliseconds the
-  /// duration
-  Future<void> selectLocation(List<double> coords, int time) async {
+  /// [coords] in [_coordinates] and calls [selectCity]. If a delay is needed,
+  /// the parameter [time] defines in milliseconds the duration
+  Future<void> selectLocation(List<double> coords) async {
     if (!_cityHasBeenSelected) {
       _coordinates = coords;
-      _cityHasBeenSelected = true;
-      await Future.delayed(Duration(milliseconds: time));
+      _weatherData = null;
+      _locationName = null;
+      selectCity(coords);
       notifyListeners();
     }
   }
 
-  /// Set city name, state and country.
+  /// Selects city.
   ///
-  /// It calls `_getLocationName` function to fetch city name, state and country,
-  /// and set it in [_locationName]
-  void setLocationName(Map<String, dynamic> data) {
-    _locationName = data;
+  /// This function sets the selected city without adding the coordinates.
+  /// It sets [_cityHasBeenSelected] to true and notifies listeners.
+  void selectCity(List<double> coords) {
+    _coordinates = coords;
+    _cityHasBeenSelected = true;
+    notifyListeners();
+  }
+
+  /// Deselects city.
+  ///
+  /// This function clears the selected city without removing the coordinates.
+  /// It sets [_cityHasBeenSelected] to false and notifies listeners.
+  void deselectCity() {
+    _cityHasBeenSelected = false;
     notifyListeners();
   }
 
@@ -102,7 +113,7 @@ class AppStateManager extends ChangeNotifier {
   /// forecast data and set it in [_weatherData].
   Future<void> setWeather() async {
     _locationName ??= await _getLocationName();
-    _weatherData = await _getWeather();
+    await _getWeather();
     notifyListeners();
   }
 
@@ -129,14 +140,22 @@ class AppStateManager extends ChangeNotifier {
   /// `one_call_api.dart`.
   ///
   /// If any errors occur during these steps, a error is setted in [_error].
-  Future<Map<String, dynamic>?> _getWeather() async {
+  Future<void> _getWeather() async {
     Map<String, dynamic> data =
         await OneCallAPI().getWeather(_coordinates[0], _coordinates[1]);
     if (data["error"] == null) {
-      return data;
+      _weatherData = data;
     } else {
       _error = data["error"];
-      return null;
+      showDialog(
+        context: navigatorKey.currentContext!,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text("Algo deu errado"),
+            content: Text(data["error"]["message"]),
+          );
+        },
+      );
     }
   }
 }

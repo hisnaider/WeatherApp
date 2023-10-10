@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import 'package:weather_app/class/app_state_manager.dart';
 import 'package:weather_app/screen/map_screen.dart';
 
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
 void main() {
   runApp(
     ChangeNotifierProvider(
@@ -21,6 +23,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Demo',
+      navigatorKey: navigatorKey,
       theme: ThemeData(
         floatingActionButtonTheme: const FloatingActionButtonThemeData(
           backgroundColor: Color.fromRGBO(0, 133, 255, 1),

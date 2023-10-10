@@ -25,7 +25,6 @@ class GeocodingAPI {
   /// message is returned
   Map<String, dynamic> decodeResponse(http.Response response) {
     var result = convert.jsonDecode(response.body);
-    print("qqq");
     if (response.statusCode == 200) {
       return {"data": result as List<dynamic>};
     }

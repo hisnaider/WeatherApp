@@ -109,21 +109,27 @@ class _CityName extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              const Icon(Icons.location_on_rounded,
-                  size: 18, color: Colors.white),
-              Expanded(
-                child: Text(
-                  "${city?["name"]} - ${city?["state"]}, ${city?["country"]}",
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                      ),
+          InkWell(
+            onTap: () {
+              Provider.of<AppStateManager>(context, listen: false)
+                  .deselectCity();
+            },
+            child: Row(
+              children: [
+                const Icon(Icons.location_on_rounded,
+                    size: 18, color: Colors.white),
+                Expanded(
+                  child: Text(
+                    "${city?["name"]} - ${city?["state"]}, ${city?["country"]}",
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.titleMedium!.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                        ),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
           Text(
             formatForecastTime(date),
@@ -390,12 +396,11 @@ class __WeatherDetailsState extends State<_WeatherDetails> {
                   itemCount: widget.dailyWeather.length,
                   itemBuilder: (context, index) {
                     Map<String, dynamic> daily = widget.dailyWeather[index];
-
                     return DailyForecastWidget(
                       date: DateTime.fromMillisecondsSinceEpoch(
                           daily["dt"] * 1000),
-                      maxTemperature: daily["temp"]["max"],
-                      minTemperature: daily["temp"]["min"],
+                      maxTemperature: daily["temp"]["max"].toDouble(),
+                      minTemperature: daily["temp"]["min"].toDouble(),
                       weatherId: daily["weather"][0]["id"],
                     );
                   },
