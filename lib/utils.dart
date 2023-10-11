@@ -114,3 +114,30 @@ const Map<int, String> weekDay = {
   6: "Sábado",
   7: "Domingo",
 };
+
+/// Get error messages based on error codes.
+///
+/// This function takes an [error] map and returns an error message based on
+/// the error code. It handles various error cases, such as missing parameters,
+/// invalid API keys, missing city information, rate limiting, and unexpected
+/// errors.
+///
+/// Parameters:
+/// [error]: A map containing error code and message.
+///
+/// Returns:
+/// A user-friendly error message.
+String errorMessage(Map<String, dynamic> error) {
+  switch (error["cod"]) {
+    case 400:
+      return "Há um problema com os parâmetros fornecidos para buscar o clima. Verifique se todos os campos estão preenchidos corretamente e tente novamente.";
+    case 401:
+      return "Há algo de errado com a chave da API, ela pode ter sido desativada ou alterada. Se persistir o erro, entre em contato com o suporte 'weather.app@suport.com'.";
+    case 404:
+      return "Verifique se o nome da cidade está correto e tente novamente. Se a cidade não estiver disponível, entre em contato com o suport 'weather.app@suport.com'.";
+    case 429:
+      return "Muitas solicitações estão sendo feitas. Por favor, aguarde um momento e tente novamente mais tarde.";
+    default:
+      return "Ocorreu um erro inesperado. Detalhes:\n${error["message"]}.";
+  }
+}

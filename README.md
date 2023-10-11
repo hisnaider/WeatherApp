@@ -30,7 +30,8 @@ This app is designed with a clean and friendly interface, making it easier for u
   - [X] Get user's location using GPS;
 - [X] Current forecast weather screen;
 - [X] Week forecast weather widget;
-- [ ] Error treatment.
+- [X] Error treatment.
+- [ ] Final touchs (refactoring, commenting, etc.)
 
 
 ## How to run the project

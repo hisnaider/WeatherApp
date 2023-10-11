@@ -4,6 +4,7 @@ import 'dart:convert' as convert;
 
 import 'package:http/http.dart' as http;
 import 'package:weather_app/config.dart';
+import 'package:weather_app/utils.dart';
 
 /// This class contains functions that utilize the Geocoding API.
 ///
@@ -21,16 +22,13 @@ class GeocodingAPI {
   /// code and message.
   ///
   /// If the `statusCode` is equal to 200, the data is returned as a Map with the
-  /// key "data." If the `statusCode` is different, an error object with a code and
-  /// message is returned
+  /// key "data." If the `statusCode` is different, a error is thrown
   Map<String, dynamic> decodeResponse(http.Response response) {
     var result = convert.jsonDecode(response.body);
     if (response.statusCode == 200) {
       return {"data": result as List<dynamic>};
     }
-    return {
-      "error": {"code": result["cod"], "message": result["message"]}
-    };
+    throw {"code": result["cod"], "message": errorMessage(result)};
   }
 
   /// Get a city by geocoding.
@@ -44,7 +42,7 @@ class GeocodingAPI {
   /// To return the data with the right format, the function [decodeResponse] is
   /// called and transform the response into a Map.
   ///
-  /// If an unexpected error occurs, an unknown code and a message is returned
+  /// If an unexpected error occurs, a error is rethrown.
   Future<Map<String, dynamic>> getCityByName(String city) async {
     try {
       Uri uri = Uri.http(baseUrl, "/geo/1.0/direct", {
@@ -55,10 +53,7 @@ class GeocodingAPI {
       var response = await http.get(uri);
       return decodeResponse(response);
     } catch (e) {
-      print(e);
-      return {
-        "error": {"code": "unknown", "message": "Algo deu errado\n$e"}
-      };
+      rethrow;
     }
   }
 
@@ -73,7 +68,7 @@ class GeocodingAPI {
   /// To return the data with the right format, the function [decodeResponse] is
   /// called and transform the response into a Map.
   ///
-  /// If an unexpected error occurs, an unknown code and a message is returned
+  /// If an unexpected error occurs, a error is rethrown.
   Future<Map<String, dynamic>> getCityByCoordinate(
       double lat, double lon) async {
     try {
@@ -86,10 +81,7 @@ class GeocodingAPI {
       var response = await http.get(uri);
       return decodeResponse(response)["data"][0];
     } catch (e) {
-      print(e);
-      return {
-        "error": {"code": "unknown", "message": "Algo deu errado\n$e"}
-      };
+      rethrow;
     }
   }
 }

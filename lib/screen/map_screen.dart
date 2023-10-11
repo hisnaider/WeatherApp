@@ -381,11 +381,11 @@ class _CityWidget extends StatelessWidget {
   /// [coordinates]: The coordinates of the city
   const _CityWidget(
       {required this.city,
-      required this.uf,
+      this.uf,
       required this.country,
       required this.coordinates});
   final String city;
-  final String uf;
+  final String? uf;
   final String country;
   final List<double> coordinates;
 
@@ -406,7 +406,7 @@ class _CityWidget extends StatelessWidget {
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
               Text(
-                "$uf, $country",
+                "${uf != null ? "${uf!}," : ""}$country",
                 style: Theme.of(context).textTheme.labelMedium,
               )
             ],

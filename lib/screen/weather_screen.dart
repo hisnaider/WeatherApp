@@ -32,41 +32,47 @@ class _WeatherScreenState extends State<WeatherScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Selector<AppStateManager, Map<String, dynamic>?>(
-      selector: (context, myState) => myState.weatherData,
-      shouldRebuild: (previous, next) => previous != next,
-      builder: (context, value, child) {
-        if (value == null) {
-          Provider.of<AppStateManager>(context, listen: false).setWeather();
-        }
-        Map<String, dynamic>? currentWeather = value?["current"] ?? {};
-        return MapScreenBackground(
-            loading: value == null,
-            child: value != null
-                ? Column(
-                    children: [
-                      _CityName(
-                        date: currentWeather!["dt"],
-                      ),
-                      _TemperatureWidget(
-                        description: currentWeather["weather"][0]
-                            ["description"],
-                        weatherId: currentWeather["weather"][0]["id"],
-                        temperature: currentWeather["temp"].toDouble(),
-                      ),
-                      _HourlyWidgetList(
-                          hourlyWeatherForecast: value["hourly"],
-                          showHourlyForecast: _showHourlyForecast),
-                      _WeatherDetails(
-                        currentWeather: currentWeather,
-                        dailyWeather: value["daily"],
-                        screenHeight: MediaQuery.of(context).size.height,
-                        setShowHourlyForecast: _setShowHourlyForecast,
-                      )
-                    ],
-                  )
-                : const SizedBox.shrink());
+    return WillPopScope(
+      onWillPop: () async {
+        Provider.of<AppStateManager>(context, listen: false).deselectCity();
+        return false;
       },
+      child: Selector<AppStateManager, Map<String, dynamic>?>(
+        selector: (context, myState) => myState.weatherData,
+        shouldRebuild: (previous, next) => previous != next,
+        builder: (context, value, child) {
+          if (value == null) {
+            Provider.of<AppStateManager>(context, listen: false).setWeather();
+          }
+          Map<String, dynamic>? currentWeather = value?["current"] ?? {};
+          return MapScreenBackground(
+              loading: value == null,
+              child: value != null
+                  ? Column(
+                      children: [
+                        _CityName(
+                          date: currentWeather!["dt"],
+                        ),
+                        _TemperatureWidget(
+                          description: currentWeather["weather"][0]
+                              ["description"],
+                          weatherId: currentWeather["weather"][0]["id"],
+                          temperature: currentWeather["temp"].toDouble(),
+                        ),
+                        _HourlyWidgetList(
+                            hourlyWeatherForecast: value["hourly"],
+                            showHourlyForecast: _showHourlyForecast),
+                        _WeatherDetails(
+                          currentWeather: currentWeather,
+                          dailyWeather: value["daily"],
+                          screenHeight: MediaQuery.of(context).size.height,
+                          setShowHourlyForecast: _setShowHourlyForecast,
+                        )
+                      ],
+                    )
+                  : const SizedBox.shrink());
+        },
+      ),
     );
   }
 }
@@ -312,104 +318,104 @@ class __WeatherDetailsState extends State<_WeatherDetails> {
       },
       onVerticalDragUpdate: (details) => dragContainer(details.delta.dy),
       child: AnimatedContainer(
+        key: const Key('unique_animatedContainer_key'),
         duration: const Duration(milliseconds: 150),
         curve: Curves.decelerate,
         height: containerHeight,
         width: double.infinity,
         decoration: const BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.vertical(
-            top: Radius.circular(20),
-          ),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
         ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10),
-          child: OverflowBox(
-            maxHeight: 650,
-            alignment: Alignment.topCenter,
-            minHeight: 200,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 10),
-                  child: Center(
-                    child: Container(
-                      height: 5,
-                      width: 30,
-                      decoration: BoxDecoration(
-                          color: Colors.grey.shade400,
-                          borderRadius: BorderRadius.circular(90)),
-                    ),
-                  ),
-                ),
-                Text(
-                  "O tempo agora",
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                Padding(
-                  padding: EdgeInsets.symmetric(vertical: 10),
-                  child: Wrap(
-                    runSpacing: 5,
-                    runAlignment: WrapAlignment.spaceBetween,
-                    clipBehavior: Clip.hardEdge,
-                    children: [
-                      WeatherDetail(
-                          weather: TypeOfWeatherDetail.feelsLike,
-                          value:
-                              widget.currentWeather["feels_like"].toString()),
-                      WeatherDetail(
-                          weather: TypeOfWeatherDetail.wind,
-                          value:
-                              widget.currentWeather["wind_speed"].toString()),
-                      WeatherDetail(
-                          weather: TypeOfWeatherDetail.cloud,
-                          value: widget.currentWeather["clouds"].toString()),
-                      WeatherDetail(
-                          weather: TypeOfWeatherDetail.precipitation,
-                          value:
-                              widget.currentWeather["rain"]?["1h"].toString() ??
-                                  "0"),
-                      WeatherDetail(
-                          weather: TypeOfWeatherDetail.uvi,
-                          value: widget.currentWeather["uvi"].toString()),
-                      WeatherDetail(
-                          weather: TypeOfWeatherDetail.humidity,
-                          value: widget.currentWeather["humidity"].toString()),
-                    ],
-                  ),
-                ),
-                const Divider(
-                  height: 20,
-                  color: Colors.grey,
-                  indent: 20,
-                  endIndent: 20,
-                  thickness: 0.3,
-                ),
-                Text(
-                  "Previsões pros proximos dias",
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                Expanded(
-                    child: ListView.builder(
-                  padding: EdgeInsetsDirectional.only(bottom: 50),
-                  itemCount: widget.dailyWeather.length,
-                  itemBuilder: (context, index) {
-                    Map<String, dynamic> daily = widget.dailyWeather[index];
-                    return DailyForecastWidget(
-                      date: DateTime.fromMillisecondsSinceEpoch(
-                          daily["dt"] * 1000),
-                      maxTemperature: daily["temp"]["max"].toDouble(),
-                      minTemperature: daily["temp"]["min"].toDouble(),
-                      weatherId: daily["weather"][0]["id"],
-                    );
-                  },
-                ))
-              ],
+        child: buildContent(),
+      ),
+    );
+  }
+
+  Widget buildContent() {
+    return Padding(
+      padding: const EdgeInsets.all(10),
+      child: OverflowBox(
+        maxHeight: 650,
+        alignment: Alignment.topCenter,
+        minHeight: 200,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Center(
+              child: Container(
+                height: 5,
+                width: 30,
+                decoration: BoxDecoration(
+                    color: Colors.grey.shade400,
+                    borderRadius: BorderRadius.circular(90)),
+              ),
             ),
-          ),
+            const SizedBox(height: 10),
+            Text("O tempo agora",
+                style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: 10),
+            buildWeatherDetails(),
+            const Divider(
+              height: 20,
+              color: Colors.grey,
+              indent: 20,
+              endIndent: 20,
+              thickness: 0.3,
+            ),
+            Text(
+              "Previsões pros proximos dias",
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            Expanded(child: buildDailyForecast())
+          ],
         ),
       ),
+    );
+  }
+
+  Widget buildWeatherDetails() {
+    return Wrap(
+      key: ValueKey("WeatherDetail"),
+      runSpacing: 5,
+      runAlignment: WrapAlignment.spaceBetween,
+      clipBehavior: Clip.hardEdge,
+      children: [
+        WeatherDetail(
+            weather: TypeOfWeatherDetail.feelsLike,
+            value: widget.currentWeather["feels_like"].toString()),
+        WeatherDetail(
+            weather: TypeOfWeatherDetail.wind,
+            value: widget.currentWeather["wind_speed"].toString()),
+        WeatherDetail(
+            weather: TypeOfWeatherDetail.cloud,
+            value: widget.currentWeather["clouds"].toString()),
+        WeatherDetail(
+            weather: TypeOfWeatherDetail.precipitation,
+            value: widget.currentWeather["rain"]?["1h"].toString() ?? "0"),
+        WeatherDetail(
+            weather: TypeOfWeatherDetail.uvi,
+            value: widget.currentWeather["uvi"].toString()),
+        WeatherDetail(
+            weather: TypeOfWeatherDetail.humidity,
+            value: widget.currentWeather["humidity"].toString()),
+      ],
+    );
+  }
+
+  Widget buildDailyForecast() {
+    return ListView.builder(
+      padding: const EdgeInsetsDirectional.only(bottom: 50),
+      itemCount: widget.dailyWeather.length,
+      itemBuilder: (context, index) {
+        Map<String, dynamic> daily = widget.dailyWeather[index];
+        return DailyForecastWidget(
+          date: DateTime.fromMillisecondsSinceEpoch(daily["dt"] * 1000),
+          maxTemperature: daily["temp"]["max"].toDouble(),
+          minTemperature: daily["temp"]["min"].toDouble(),
+          weatherId: daily["weather"][0]["id"],
+        );
+      },
     );
   }
 }
