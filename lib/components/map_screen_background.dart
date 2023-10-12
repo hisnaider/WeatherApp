@@ -38,7 +38,7 @@ class MapScreenBackground extends StatelessWidget {
           ),
         ),
         AnimatedSwitcher(
-          duration: const Duration(milliseconds: 1500),
+          duration: const Duration(milliseconds: 1250),
           child: SizedBox(
               key: ValueKey<bool>(loading),
               child: loading ? const _CustomLoadingIndicator() : child),

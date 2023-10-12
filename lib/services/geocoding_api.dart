@@ -21,12 +21,12 @@ class GeocodingAPI {
   /// value of `statusCode`, it either returns the data as a Map or an error
   /// code and message.
   ///
-  /// If the `statusCode` is equal to 200, the data is returned as a Map with the
-  /// key "data." If the `statusCode` is different, a error is thrown
-  Map<String, dynamic> decodeResponse(http.Response response) {
+  /// If the `statusCode` is equal to 200, the data is returned as a List.
+  /// If the `statusCode` is different, a error is thrown
+  List<dynamic> decodeResponse(http.Response response) {
     var result = convert.jsonDecode(response.body);
     if (response.statusCode == 200) {
-      return {"data": result as List<dynamic>};
+      return result as List<dynamic>;
     }
     throw {"code": result["cod"], "message": errorMessage(result)};
   }
@@ -37,14 +37,14 @@ class GeocodingAPI {
   ///
   /// By using the endpoint `api.openweathermap.org/geo/1.0/direct` with the
   /// [city] as get request, it will return a list of cities with the fields
-  /// `name`, `local_names`, `lat`, `lon`, `country` and `state`
+  /// `name`, `local_names`, `lat`, `lon`, `country` and `state`. When [city] is
+  /// a empty string, it will return a empty list
   ///
-  /// To return the data with the right format, the function [decodeResponse] is
-  /// called and transform the response into a Map.
-  ///
-  /// If an unexpected error occurs, a error is rethrown.
-  Future<Map<String, dynamic>> getCityByName(String city) async {
+  /// If an unexpected error occurs in [decodeResponse] function, a error is
+  /// rethrown.
+  Future<List<dynamic>> getCityByName(String city) async {
     try {
+      if (city.isEmpty) return [];
       Uri uri = Uri.http(baseUrl, "/geo/1.0/direct", {
         "q": city,
         "limit": "3",
@@ -65,10 +65,8 @@ class GeocodingAPI {
   /// and [lon] as get request, it will return a list of cities with the fields
   /// `name`, `local_names`, `lat`, `lon` and `country`
   ///
-  /// To return the data with the right format, the function [decodeResponse] is
-  /// called and transform the response into a Map.
-  ///
-  /// If an unexpected error occurs, a error is rethrown.
+  /// If an unexpected error occurs in [decodeResponse] function, a error is
+  /// rethrown.
   Future<Map<String, dynamic>> getCityByCoordinate(
       double lat, double lon) async {
     try {
@@ -79,7 +77,7 @@ class GeocodingAPI {
         "appid": apiKey,
       });
       var response = await http.get(uri);
-      return decodeResponse(response)["data"][0];
+      return decodeResponse(response)[0];
     } catch (e) {
       rethrow;
     }
