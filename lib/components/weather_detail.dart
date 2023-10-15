@@ -3,9 +3,20 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:weather_app/utils.dart';
 
 class WeatherDetail extends StatelessWidget {
+  /// Widget to displays weather forecast details.
+  ///
+  /// This widget is designed to present weather details in a structured manner.
+  /// It includes an SVG icon, a label, and the corresponding value for the detail.
+  ///
+  /// It accepts the following parameters:
+  /// - [weather]: The type of weather detail, which determines the icon and label.
+  /// - [value]: The value of the weather detail.
+  ///
+  /// The widget dynamically calculates its width based on the device's screen width to
+  /// ensure optimal layout.
+  const WeatherDetail({super.key, required this.weather, required this.value});
   final TypeOfWeatherDetail weather;
   final String value;
-  const WeatherDetail({super.key, required this.weather, required this.value});
 
   @override
   Widget build(BuildContext context) {

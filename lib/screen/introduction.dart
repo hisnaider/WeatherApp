@@ -1,119 +1,94 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:weather_app/classes/introduction_page_manager.dart';
+import 'package:weather_app/components/introduction_page.dart';
 import 'package:weather_app/screen/map_screen.dart';
 
-/// The main widget representing the introduction screen.
-///
-/// This widget displays a series of pages to introduce users to the WeatherApp.
-/// It provides information about app features and functionality.
-class IntroductionScreen extends StatelessWidget {
+final IntroductionPageManager _pageManager = IntroductionPageManager();
+
+class IntroductionScreen extends StatefulWidget {
+  /// The primary widget for the introduction screen.
+  ///
+  /// This widget serves as an introduction to the app, presenting a series of pages with
+  /// welcome messages and explanations of the app's functionality. Each page includes
+  /// an image, a title, and a descriptive text that introduces different aspects of the app.
+  ///
+  /// At the bottom of the screen, the [_StepsIndicator] helps navigate between pages and
+  /// transition to the [MapScreen] when the introduction is completed. Additionally, there's
+  /// a "Pular" (Skip) button at the top of the screen for users who want to skip the introduction
+  /// and go directly to the [MapScreen].
   const IntroductionScreen({super.key});
+
+  @override
+  State<IntroductionScreen> createState() => _IntroductionScreenState();
+}
+
+class _IntroductionScreenState extends State<IntroductionScreen> {
+  final PageController controller = PageController();
+
+  /// Handle page navigation and update the screen state.
+  ///
+  /// This function is responsible for updating the state of the screen when navigation
+  /// between pages occurs. It takes an integer parameter [index] representing the
+  /// index of the page being navigated to. It should be called whenever a page change
+  /// event happens in your application.
+  ///
+  /// Parameters:
+  /// - [index]: The index of the page to which navigation is occurring.
+  void pageHandler(int index) {
+    setState(() {
+      _pageManager.changePage(index);
+    });
+  }
+
+  /// Navigate to the next or previous page in the introduction and handle screen transitions.
+  ///
+  /// This function is responsible for navigating between pages in the introduction screen.
+  /// It takes a void callback parameter [updateCurrentPage] to update the current page.
+  /// If the current page is the last one, this function will navigate to the [MapScreen].
+  ///
+  /// Parameters:
+  /// - [updateCurrentPage]: A void callback to update the [_currentPage] of [_pageManager].
+  ///   This parameter typically comes from [_pageManager] and can be the [incrementPage] function
+  ///   to increment the current page by 1, the [decrementPage] function to decrement it by 1,
+  ///   or [changePage] to change the current page to a specific index.
+  ///
+  /// After navigating to the [MapScreen], this function sets a flag in shared preferences
+  /// to indicate that the introduction screen has been passed, and the user won't see
+  /// it again until the cache is reset.
+  void swipePage(VoidCallback updateCurrentPage) async {
+    updateCurrentPage();
+    if (_pageManager.currentPage != _pageManager.pages.length) {
+      controller.animateToPage(
+        _pageManager.currentPage,
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeInOut,
+      );
+    } else {
+      final sharedPreferences = await SharedPreferences.getInstance();
+      await sharedPreferences.setBool("hasPassedIntroScreen", true);
+      // ignore: use_build_context_synchronously
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const MapScreen()),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Padding(
-        padding: const EdgeInsets.fromLTRB(10, 35, 10, 10),
-        child: _PageList(
-          pages: [
-            _Page(
-              widget: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 50),
-                child: SvgPicture.asset("svg/logo.svg"),
-              ),
-              showBackground: false,
-              title: "Bem vindo(a)!",
-              text:
-                  "É muito bom ter você aqui no Weather.App. Avance essa introdução para ver as funcionalidade do app",
-            ),
-            _Page(
-              widget: Image.asset(
-                "images/first_slide.png",
-                height: 325,
-              ),
-              showBackground: true,
-              title: "Informações do clima",
-              text:
-                  "Você pode ver não só a temperatura da cidade, mas também o clima, previsão pras próximas 8 horas, sensação térmica, velocidade do vento e mais!",
-            ),
-            _Page(
-              widget: Image.asset(
-                "images/second_slide.png",
-                height: 325,
-              ),
-              showBackground: true,
-              title: "Previsões para semana",
-              text:
-                  "É possível ver também o clima e a temperatura máxima e mínima pros próximos dias da semana",
-            ),
-            _Page(
-              widget: Image.asset(
-                "images/third_slide.png",
-                height: 325,
-              ),
-              showBackground: true,
-              title: "Localizar cidade",
-              text:
-                  "Parar localizar a cidade você pesquisa na barra de pesquisa, mover o mapa ou usar o GPS do dispositivo",
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// This widget manages a list of pages and their navigation.
-///
-/// [pages] is the list of pages to be displayed to the user. It should contain
-/// only [_Page] widgets.
-///
-/// This widget provides navigation controls to move between pages and includes
-/// a step indicator to track the progress.
-class _PageList extends StatefulWidget {
-  final List<_Page> pages;
-  const _PageList({required this.pages});
-
-  @override
-  State<_PageList> createState() => _PageListState();
-}
-
-class _PageListState extends State<_PageList> {
-  final PageController controller = PageController();
-  int steps = 0;
-
-  void pageHandler(int index) {
-    setState(() {
-      steps = index;
-    });
-  }
-
-  /// Check if is the first page
-  bool isFirstStep() {
-    return steps == 0;
-  }
-
-  /// Check if is the last page
-  bool isLastStep() {
-    return steps == widget.pages.length - 1;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: Column(
-        children: [
-          Align(
-            alignment: Alignment.centerRight,
-            child: Visibility(
-              visible: !isLastStep(),
-              child: InkWell(
-                onTap: () {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => const MapScreen()),
-                  );
-                },
+        padding: const EdgeInsets.fromLTRB(0, 35, 0, 10),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              child: _Buttons(
+                onPressed: () => swipePage(
+                  () => _pageManager.changePage(_pageManager.pages.length),
+                ),
                 child: Text(
                   "Pular",
                   style: TextStyle(
@@ -123,202 +98,163 @@ class _PageListState extends State<_PageList> {
                 ),
               ),
             ),
-          ),
+            Expanded(
+              child: PageView(
+                controller: controller,
+                onPageChanged: pageHandler,
+                children: [
+                  for (int i = 0; i < _pageManager.pages.length; i++) ...[
+                    IntroductionPageWidget(
+                      title: _pageManager.pages[i].title,
+                      text: _pageManager.pages[i].text,
+                      image: _pageManager.pages[i].image,
+                      showBackground: _pageManager.pages[i].showBackground,
+                    )
+                  ]
+                ],
+              ),
+            ),
+            _StepsIndicator(
+              currentStep: _pageManager.currentPage,
+              numberOfSteps: _pageManager.pages.length,
+              nextStep: () => swipePage(_pageManager.incrementPage),
+              previousStep: () => swipePage(_pageManager.decrementPage),
+            )
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _StepsIndicator extends StatelessWidget {
+  /// Widget that controls navigation between pages and displays step indicators.
+  ///
+  /// This widget consists of a row with two buttons to navigate to the next and previous steps.
+  /// In the center of the row, it displays step indicators as small containers representing the total number
+  /// of steps, with the current step being highlighted in blue and slightly wider.
+  ///
+  /// Parameters:
+  /// - [currentStep]: The current step;
+  /// - [numberOfSteps]: The total number of steps;
+  /// - [nextStep]: Function to navigate to the next step;
+  /// - [previousStep]: Function to navigate to the previous step.
+  const _StepsIndicator({
+    required this.currentStep,
+    required this.numberOfSteps,
+    required this.nextStep,
+    required this.previousStep,
+  });
+
+  final int currentStep;
+  final int numberOfSteps;
+  final VoidCallback nextStep;
+  final VoidCallback previousStep;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 10),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
           Expanded(
-            child: PageView(
-              controller: controller,
-              onPageChanged: pageHandler,
-              children: widget.pages,
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: AnimatedOpacity(
+                duration: const Duration(milliseconds: 250),
+                opacity: !_pageManager.isFirstStep() ? 1 : 0,
+                child: _Buttons(
+                  onPressed: previousStep,
+                  child: const Icon(
+                    Icons.arrow_back,
+                    size: 30,
+                  ),
+                ),
+              ),
             ),
           ),
-          _StepsIndicator(
-            currentStep: steps,
-            numberOfSteps: widget.pages.length,
-            isFirstStep: isFirstStep(),
-            isLastStep: isLastStep(),
-            nextStep: () {
-              controller.animateToPage(
-                steps + 1,
-                duration: const Duration(milliseconds: 250),
-                curve: Curves.easeInOut,
-              );
-            },
-            previousStep: () {
-              controller.animateToPage(
-                steps - 1,
-                duration: const Duration(milliseconds: 250),
-                curve: Curves.easeInOut,
-              );
-            },
-          )
+          Expanded(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                for (int i = 0; i < numberOfSteps; i++) ...[
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 250),
+                    height: 8,
+                    width: currentStep == i ? 30 : 8,
+                    decoration: BoxDecoration(
+                      color: currentStep == i
+                          ? Theme.of(context).colorScheme.primary
+                          : Colors.grey,
+                      borderRadius: BorderRadius.circular(90),
+                    ),
+                  )
+                ]
+              ],
+            ),
+          ),
+          Expanded(
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 250),
+              child: SizedBox(
+                key: ValueKey<bool>(_pageManager.isLastStep()),
+                child: _pageManager.isLastStep()
+                    ? Align(
+                        alignment: Alignment.centerRight,
+                        child: _Buttons(
+                          onPressed: nextStep,
+                          child: Text(
+                            "Ir pro mapa",
+                            style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w700,
+                                color: Theme.of(context).colorScheme.primary),
+                            textAlign: TextAlign.end,
+                          ),
+                        ),
+                      )
+                    : Align(
+                        alignment: Alignment.centerRight,
+                        child: _Buttons(
+                          onPressed: nextStep,
+                          child: const Icon(
+                            Icons.arrow_forward,
+                            size: 30,
+                          ),
+                        ),
+                      ),
+              ),
+            ),
+          ),
         ],
       ),
     );
   }
 }
 
-/// Represents the page in the introduction screen
-///
-/// This widget displays content to the user, typically an image, text, or other widgets.
-///
-/// [widget]: The main content to be displayed on the page.
-/// [title]: The description or additional text content of the page.
-/// [text]: The description or additional text content of the page.
-/// [showBackground]: A boolean that control the visibility of the background
-class _Page extends StatelessWidget {
-  final Widget widget;
-  final String title;
-  final String text;
-  final bool showBackground;
-  const _Page(
-      {required this.title,
-      required this.text,
-      required this.widget,
-      required this.showBackground});
+class _Buttons extends StatelessWidget {
+  /// Widget to create a button.
+  ///
+  /// This widget represents a customizable button with rounded corners and a
+  /// transparent fill. It's designed to create interactive UI elements
+  /// and accepts the following parameters:
+  ///
+  /// - [onPressed]: A callback function that will be executed when the button is pressed.
+  /// - [child]: The content (e.g., text, icon) to be displayed inside the button.
+  const _Buttons({required this.onPressed, required this.child});
+  final VoidCallback onPressed;
+  final Widget child;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Expanded(
-          child: Stack(
-            children: [
-              Align(
-                alignment: Alignment.bottomCenter,
-                child: Visibility(
-                  visible: showBackground,
-                  child: SvgPicture.asset(
-                    "svg/introduction_background.svg",
-                  ),
-                ),
-              ),
-              Positioned(left: 0, right: 0, bottom: 0, child: widget),
-            ],
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 10),
-          child: Text(
-            title,
-            style: Theme.of(context).textTheme.titleLarge,
-            textAlign: TextAlign.center,
-          ),
-        ),
-        SizedBox(
-          height: 300,
-          child: Text(
-            text,
-            style: Theme.of(context).textTheme.bodyLarge,
-            textAlign: TextAlign.center,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-/// This widget represents a navigation control for managing steps and page navigation.
-///
-/// It provides a step indicator and navigation buttons.
-///
-/// [currentStep]: The current step.
-/// [numberOfSteps]: The total number of steps.
-/// [isFirstStep]: A boolean indicating if it's the first step.
-/// [isLastStep]: A boolean indicating if it's the last step.
-/// [nextStep]: A function that allows navigation to the next step.
-/// [prevStep]: A function that allows navigation to the previous step.
-class _StepsIndicator extends StatelessWidget {
-  final int currentStep;
-  final int numberOfSteps;
-  final bool isFirstStep;
-  final bool isLastStep;
-  final VoidCallback nextStep;
-  final VoidCallback previousStep;
-  const _StepsIndicator(
-      {required this.currentStep,
-      required this.numberOfSteps,
-      required this.isFirstStep,
-      required this.isLastStep,
-      required this.nextStep,
-      required this.previousStep});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Expanded(
-          child: Align(
-            alignment: Alignment.centerLeft,
-            child: Visibility(
-              visible: !isFirstStep,
-              child: InkWell(
-                onTap: previousStep,
-                child: const Icon(
-                  Icons.arrow_back,
-                  size: 30,
-                ),
-              ),
-            ),
-          ),
-        ),
-        SizedBox(
-          width: 175,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              for (int i = 0; i < numberOfSteps; i++) ...[
-                currentStep == i
-                    ? Container(
-                        height: 8,
-                        width: 30,
-                        decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.primary,
-                            borderRadius: BorderRadius.circular(90)),
-                      )
-                    : Container(
-                        height: 8,
-                        width: 8,
-                        decoration: BoxDecoration(
-                            color: Colors.grey,
-                            borderRadius: BorderRadius.circular(90)),
-                      )
-              ]
-            ],
-          ),
-        ),
-        Expanded(
-          child: Align(
-            alignment: Alignment.centerRight,
-            child: isLastStep
-                ? InkWell(
-                    onTap: () {
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const MapScreen()),
-                      );
-                    },
-                    child: Text(
-                      "Ir pro mapa",
-                      style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                          color: Theme.of(context).colorScheme.primary),
-                      textAlign: TextAlign.end,
-                    ),
-                  )
-                : InkWell(
-                    onTap: nextStep,
-                    child: const Icon(
-                      Icons.arrow_forward,
-                      size: 30,
-                    ),
-                  ),
-          ),
-        ),
-      ],
+    return RawMaterialButton(
+      onPressed: onPressed,
+      padding: const EdgeInsets.all(10),
+      constraints: const BoxConstraints(),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      splashColor: Theme.of(context).colorScheme.primary.withOpacity(0.25),
+      child: child,
     );
   }
 }

@@ -42,6 +42,7 @@ dependencies:
   http: ^1.1.0
   flutter_map_animations: ^0.4.1
   provider: ^6.0.5
+  shared_preferences: ^2.2.2
 
 dev_dependencies:
   flutter_test:

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert' as convert;
 
 import 'package:http/http.dart' as http;
@@ -19,7 +20,7 @@ class OneCallAPI {
   /// The response includes information such as `lat`, `lon`, `timezone`,
   /// `timezone_offset`, `current`, `hourly` and `daily`.
   ///
-  /// If an unexpected error occurs, an unknown error code and a descriptive
+  /// If an unexpected error occurs, an error code and a descriptive
   /// message are returned.
   Future<Map<String, dynamic>> getWeather(double lat, double lon) async {
     try {
@@ -31,14 +32,27 @@ class OneCallAPI {
         "units": "metric",
         "lang": "pt_br",
       });
-      var response = await http.get(uri);
-      var result = convert.jsonDecode(response.body);
-      if (response.statusCode == 200) {
-        result["daily"].removeAt(0);
-        result["hourly"] = result["hourly"].sublist(1, 25);
-        return {...result as Map<String, dynamic>};
+      try {
+        var response = await http.get(uri).timeout(const Duration(seconds: 10));
+        var result = convert.jsonDecode(response.body);
+        if (response.statusCode == 200) {
+          result["daily"].removeAt(0);
+          result["hourly"] = result["hourly"].sublist(1, 25);
+          return {...result as Map<String, dynamic>};
+        }
+        throw {"code": result["cod"], "message": errorMessage(result)};
+      } catch (e) {
+        if (e is TimeoutException) {
+          throw {
+            "code": "timeout",
+            "message": errorMessage({"cod": "timeout"})
+          };
+        }
+        throw {
+          "code": "unknown",
+          "message": errorMessage({"cod": "unknown", "message": e.toString()})
+        };
       }
-      throw {"code": result["cod"], "message": errorMessage(result)};
     } catch (e) {
       rethrow;
     }

@@ -1,5 +1,4 @@
-// ignore_for_file: avoid_print
-
+import 'dart:async';
 import 'dart:convert' as convert;
 
 import 'package:http/http.dart' as http;
@@ -16,19 +15,34 @@ import 'package:weather_app/utils.dart';
 class GeocodingAPI {
   /// Transform a HTTP response into a structured Map.
   ///
-  /// This function takes an [http.Response] object as a parameter, which
-  /// contains a `body` (String) and a `statusCode` (int). Depending on the
-  /// value of `statusCode`, it either returns the data as a Map or an error
-  /// code and message.
+  /// This function takes an [Uri] object as a parameter, which
+  /// contains the URI to make a GET request. It returns a structured response,
+  /// which includes a `body` (String) and a `statusCode` (int). Depending on the
+  /// value of `statusCode`.
   ///
-  /// If the `statusCode` is equal to 200, the data is returned as a List.
-  /// If the `statusCode` is different, a error is thrown
-  List<dynamic> decodeResponse(http.Response response) {
-    var result = convert.jsonDecode(response.body);
-    if (response.statusCode == 200) {
-      return result as List<dynamic>;
+  /// If the `statusCode` is equal to 200, indicating a successful response, the data is parsed and returned as a List.
+  ///
+  /// If the `statusCode` is different from 200, an error is thrown, providing the error code and a descriptive error message.
+  Future<List<dynamic>> decodeResponse(Uri uri) async {
+    try {
+      var response = await http.get(uri).timeout(const Duration(seconds: 10));
+      var result = convert.jsonDecode(response.body);
+      if (response.statusCode == 200) {
+        return result as List<dynamic>;
+      }
+      throw {"code": result["cod"], "message": errorMessage(result)};
+    } catch (e) {
+      if (e is TimeoutException) {
+        throw {
+          "code": "timeout",
+          "message": errorMessage({"cod": "timeout"})
+        };
+      }
+      throw {
+        "code": "unknown",
+        "message": errorMessage({"cod": "unknown", "message": e.toString()})
+      };
     }
-    throw {"code": result["cod"], "message": errorMessage(result)};
   }
 
   /// Get a city by geocoding.
@@ -50,8 +64,7 @@ class GeocodingAPI {
         "limit": "3",
         "appid": apiKey,
       });
-      var response = await http.get(uri);
-      return decodeResponse(response);
+      return await decodeResponse(uri);
     } catch (e) {
       rethrow;
     }
@@ -76,8 +89,8 @@ class GeocodingAPI {
         "limit": "3",
         "appid": apiKey,
       });
-      var response = await http.get(uri);
-      return decodeResponse(response)[0];
+      List<dynamic> result = await decodeResponse(uri);
+      return result[0];
     } catch (e) {
       rethrow;
     }

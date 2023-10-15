@@ -1,32 +1,27 @@
-// ignore_for_file: use_build_context_synchronously, avoid_print
-
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_animations/flutter_map_animations.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
-import 'package:weather_app/class/app_state_manager.dart';
+import 'package:weather_app/classes/app_state_manager.dart';
+import 'package:weather_app/components/error_dialog.dart';
 import 'package:weather_app/components/map_pin.dart';
-import 'package:weather_app/components/map_screen_background.dart';
 import 'package:weather_app/utils.dart';
 import 'package:weather_app/screen/weather_screen.dart';
 import 'package:weather_app/services/geocoding_api.dart';
-import 'package:weather_app/services/one_call_api.dart';
 
 /// This variable controls the map.
 AnimatedMapController? _mapController;
 
 class MapScreen extends StatefulWidget {
-  /// The main widget representing the map screen.
+  /// Main widget for the map screen.
   ///
-  /// This widget displays an interactive map for users to interact with it by
-  /// dragging and pinch zooming. It includes features such as a text field to
-  /// search for a city, a floating button to obtain the current location, and a
-  /// map for navigating to a specific city.
-  ///
-  /// If a localization has been selected, the WeatherScreen will display
-  /// the weather forecast for that location.
+  /// This widget provides an interactive map for user interaction, supporting
+  /// features like city search, suggested cities, weather information for the
+  /// last selected city, a current location button, a map center coordinate
+  /// retrieval button, and city navigation. If a location is selected, it
+  /// navigates to the [WeatherScreen].
   const MapScreen({super.key});
 
   @override
@@ -89,7 +84,6 @@ class _MapWidget extends StatefulWidget {
 class _MapWidgetState extends State<_MapWidget> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
-    print("Map Widget");
     return Selector<AppStateManager, List<double>>(
       selector: (context, myState) => myState.coordinates,
       shouldRebuild: (previous, next) => previous != next,
@@ -205,16 +199,26 @@ class __SearchCityState extends State<_SearchCity> {
   ///
   /// It calls `getCityByName` function, with [city] as parameter, from
   /// `geocoding_api.dart` to fetch a list of cities, than set it in
-  /// [_listOfSearchedCities cities]. When
+  /// [_listOfSearchedCities cities].
+  ///
+  /// If any error is encountered, a dialog error will be displayed
   void searchCityByName(String city) async {
     setState(() {
       _searching = true;
     });
-    var findedCities = await GeocodingAPI().getCityByName(city.trim());
-    setState(() {
-      _listOfSearchedCities = findedCities;
-      _searching = false;
-    });
+    try {
+      var findedCities = await GeocodingAPI().getCityByName(city.trim());
+      setState(() {
+        _listOfSearchedCities = findedCities;
+        _searching = false;
+      });
+    } catch (e) {
+      var error = e as Map<String, dynamic>;
+      errorDialog(error);
+      setState(() {
+        _searching = false;
+      });
+    }
   }
 
   @override
@@ -332,7 +336,7 @@ class __SearchCityState extends State<_SearchCity> {
                           style: Theme.of(context).textTheme.bodyMedium,
                         ),
                         Text(
-                          "${_listOfSearchedCities[i]["state"] ?? ""}${_listOfSearchedCities[i]["country"]}",
+                          "${_listOfSearchedCities[i]["state"] ?? ""}, ${_listOfSearchedCities[i]["country"]}",
                           style: Theme.of(context).textTheme.labelMedium,
                         )
                       ],

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
-import 'package:weather_app/class/app_state_manager.dart';
+import 'package:weather_app/classes/app_state_manager.dart';
 import 'package:weather_app/components/daily_forecast_widget.dart';
 import 'package:weather_app/components/hourly_forecast_widget.dart';
 import 'package:weather_app/components/map_screen_background.dart';
@@ -27,12 +27,20 @@ class WeatherScreen extends StatefulWidget {
 class _WeatherScreenState extends State<WeatherScreen> {
   bool _showHourlyForecast = true;
 
-  void _setShowHourlyForecast(double weekForecastWidgetHeight) {
-    if (weekForecastWidgetHeight > 450 && _showHourlyForecast) {
+  /// This function determines the visibility of the hourly forecast widget.
+  ///
+  /// It checks whether the [weatherDetailHeight] is greater than 450 pixels and whether
+  /// the hourly forecast widget is currently visible. If the height condition is met,
+  /// it hides the widget; otherwise, it shows it.
+  ///
+  /// Parameters:
+  /// - [weatherDetailHeight]: The current height of the hourly forecast widget.
+  void _setShowHourlyForecast(double weatherDetailHeight) {
+    if (weatherDetailHeight > 450 && _showHourlyForecast) {
       setState(() {
         _showHourlyForecast = false;
       });
-    } else if (weekForecastWidgetHeight <= 450 && !_showHourlyForecast) {
+    } else if (weatherDetailHeight <= 450 && !_showHourlyForecast) {
       setState(() {
         _showHourlyForecast = true;
       });

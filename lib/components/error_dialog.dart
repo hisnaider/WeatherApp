@@ -7,12 +7,14 @@ import 'package:weather_app/main.dart';
 /// error code.
 ///
 /// Parameters:
-/// [error]: A map containing message and code of the error.
+/// - [error]: A map containing message and code of the error.
 void errorDialog(Map<String, dynamic> error) {
   showDialog(
     context: navigatorKey.currentContext!,
     builder: (BuildContext context) {
       return AlertDialog(
+        backgroundColor: Colors.white,
+        surfaceTintColor: Colors.white,
         title: Text(
           "Algo deu errado",
           style: Theme.of(context).textTheme.titleLarge,

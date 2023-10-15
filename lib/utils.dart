@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:weather_app/config.dart';
 
+/// This const represents the decoration of the textfield.
+///
+/// It fills the textfield with a white color, rounds its corners, and adds vertical
+/// and horizontal space between the borders of the textfield.
 InputDecoration kTextFieldDecoration = InputDecoration(
   hintText: "Procurar cidade",
   hintStyle: const TextStyle(
@@ -7,10 +12,19 @@ InputDecoration kTextFieldDecoration = InputDecoration(
       fontSize: 15,
       fontWeight: FontWeight.normal),
   contentPadding: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+  filled: true,
+  fillColor: Colors.white,
   border: OutlineInputBorder(
       borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
 );
 
+/// This enum represents the types of weather details that can be displayed.
+///
+/// Each enum value includes:
+/// - [title]: A human-readable label for the weather detail.
+/// - [icon]: The SVG icon representing the weather detail.
+/// - [typeOfValue]: The unit of measurement or type associated with the value
+///   ("%", "º", "mm/h", "Km/h").
 enum TypeOfWeatherDetail {
   cloud("Nuvens", "svg/weather_details/cloud_percentage.svg", "%"),
   feelsLike("Sensação", "svg/weather_details/feels_like.svg", "º"),
@@ -26,9 +40,32 @@ enum TypeOfWeatherDetail {
   final String typeOfValue;
 }
 
-String weatherIcon(int code, int hour) {
+/// This function determines the location of the weather icon SVG.
+///
+/// It selects the appropriate weather icon SVG based on the provided [weatherId]
+/// (representing the weather condition) and the [hour] at which the weather condition occurs.
+///
+/// Parameters:
+/// - [weatherId]: The ID representing the weather condition, which can be in the following ranges:
+///   - Thunderstorm (200-299)
+///   - Rain (300-499)
+///   - Light Rain (500-510)
+///   - Snow (511)
+///   - More Rain (520-599)
+///   - Snow (600-700)
+///   - Mist (701-799)
+///   - Clear Sky (800)
+///   - Few Clouds (801)
+///   - Scattered Clouds (802)
+///   - Broken Clouds (803-804)
+///
+/// - [hour]: The hour of the day when the weather condition occurs (0-23).
+///
+/// The function determines whether it's day or night based on the [hour] and returns the
+/// corresponding day or night weather icon SVG.
+String weatherIcon(int weatherId, int hour) {
   bool isNight = hour >= 18 || hour < 6;
-  switch (code) {
+  switch (weatherId) {
     case >= 200 && < 300:
       return "svg/weather/thunderstorm.svg";
     case >= 300 && < 500:
@@ -65,31 +102,51 @@ String weatherIcon(int code, int hour) {
   }
 }
 
+/// This function determines a temporal description based on the difference in days.
+///
+/// Parameters:
+/// - [days]: The number of days that represent the temporal description. It can fall into the following ranges:
+///   - Today (0)
+///   - Yesterday (1)
+///   - This week (2-7)
+///   - Last week (8-14)
+///   - A few weeks ago (15-30)
+///   - Last month (31-60)
+///   - A few months ago (61-365)
+///   - Last year (366-730)
+///   - A few years ago (more than 730)
+///   - Undetermined time (any other value)
+///
+/// The function selects the appropriate temporal description based on the [days] value.
 String getTemporalDescription(int days) {
   switch (days) {
     case 0:
       return "Hoje";
     case 1:
       return "Ontem";
-    case > 1 && < 7:
+    case > 1 && <= 7:
       return "Essa semana";
-    case >= 7 && < 14:
-      return "Há mais de uma semana";
-    case >= 14 && < 30:
+    case > 7 && <= 14:
+      return "Semana passada";
+    case > 14 && <= 30:
       return "Há algumas semanas";
-    case >= 30 && < 60:
-      return "Há mais de um mês";
-    case >= 60 && < 365:
+    case > 30 && <= 60:
+      return "Mês passado";
+    case > 60 && <= 365:
       return "Há alguns meses";
-    case >= 365 && < 730:
-      return "Há mais de um ano";
-    case >= 730:
+    case > 365 && <= 730:
+      return "Ano passado";
+    case > 730:
       return "Há alguns anos";
     default:
       return "Tempo indeterminado";
   }
 }
 
+/// This constant map provides the names of the months based on their respective
+/// numbers.
+///
+/// It is used to map the month number (1 to 12) to the name of the month.
 const Map<int, String> months = {
   1: "Janeiro",
   2: "Fevereiro",
@@ -105,6 +162,10 @@ const Map<int, String> months = {
   12: "Dezembro",
 };
 
+/// This constant map provides the names of the days of the week based on their
+/// respective numbers.
+///
+/// It is used to map the day of the week number (1 to 7) to the name of the day.
 const Map<int, String> weekDay = {
   1: "Segunda-feira",
   2: "Terça-feira",
@@ -119,14 +180,21 @@ const Map<int, String> weekDay = {
 ///
 /// This function takes an [error] map and returns an error message based on
 /// the error code. It handles various error cases, such as missing parameters,
-/// invalid API keys, missing city information, rate limiting, and unexpected
-/// errors.
+/// invalid API keys, missing city information, rate limiting, timeout, and unexpected
+/// errors, returning a user-friendly error message.
 ///
-/// Parameters:
-/// [error]: A map containing error code and message.
+/// It accepts the following parameters:
+/// - [error]: A map containing error code and message. The error's code can fall into the following ranges:
+///   - Parameter error (400)
+///   - API key error (401)
+///   - Typos or non-existing value in the API (404)
+///   - Exceeded request limits (429)
+///   - Request timeout (timeout)
+///   - An unexpected error (any different code)
 ///
-/// Returns:
-/// A user-friendly error message.
+/// The function selects the appropriate error message based on the code of the
+/// error. When it's an unexpected error, the error details will be returned
+/// with the message.
 String errorMessage(Map<String, dynamic> error) {
   switch (error["cod"]) {
     case 400:
@@ -137,7 +205,10 @@ String errorMessage(Map<String, dynamic> error) {
       return "Verifique se o nome da cidade está correto e tente novamente. Se a cidade não estiver disponível, entre em contato com o suport 'weather.app@suport.com'.";
     case 429:
       return "Muitas solicitações estão sendo feitas. Por favor, aguarde um momento e tente novamente mais tarde.";
+    case "timeout":
+      return "O tempo limite de solicitação de dados de 10 segundos foi excedido. Certifique-se de que sua conexão com a Internet esteja estável e tente novamente mais tarde.";
     default:
-      return "Ocorreu um erro inesperado. Detalhes:\n${error["message"]}.";
+      error["message"] = error["message"].replaceAll(apiKey, "APIKEY");
+      return "Ocorreu um erro inesperado.\n\n${error["message"]}.";
   }
 }

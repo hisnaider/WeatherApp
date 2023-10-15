@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:weather_app/components/error_dialog.dart';
-import 'package:weather_app/main.dart';
 import 'package:weather_app/services/geocoding_api.dart';
 import 'package:weather_app/services/geolocator_api.dart';
 import 'package:weather_app/services/one_call_api.dart';
@@ -29,6 +28,7 @@ class AppStateManager extends ChangeNotifier {
 
   /// class constructor
   AppStateManager({required List<double> coord}) {
+    setUserPosition();
     _coordinates = coord;
   }
 

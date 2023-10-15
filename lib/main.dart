@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:weather_app/class/app_state_manager.dart';
-import 'package:weather_app/screen/map_screen.dart';
+import 'package:weather_app/classes/app_state_manager.dart';
+import 'package:weather_app/screen/splash_screen.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -25,12 +25,6 @@ class MyApp extends StatelessWidget {
       title: 'Flutter Demo',
       navigatorKey: navigatorKey,
       theme: ThemeData(
-        floatingActionButtonTheme: const FloatingActionButtonThemeData(
-          backgroundColor: Color.fromRGBO(0, 133, 255, 1),
-          sizeConstraints: BoxConstraints.tightFor(height: 65, width: 65),
-          shape: CircleBorder(),
-          iconSize: 35,
-        ),
         textTheme: const TextTheme(
           titleLarge: TextStyle(
             fontFamily: "Poppins",
@@ -79,7 +73,7 @@ class MyApp extends StatelessWidget {
             primary: const Color.fromRGBO(0, 133, 255, 1)),
         useMaterial3: true,
       ),
-      home: const MapScreen(),
+      home: const SplashScreen(),
     );
   }
 }

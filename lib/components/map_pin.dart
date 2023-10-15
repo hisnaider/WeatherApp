@@ -3,17 +3,18 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:provider/provider.dart';
-import 'package:weather_app/class/app_state_manager.dart';
 
-/// This widget represents the centered pin over the map.
+/// Widget that represents a map pin with animation.
 ///
-/// It includes a icon in svg and a animation. The animation is triggered if
-/// the parameter [animate] is true
+/// This widget displays a map pin icon with optional animation. When animated,
+/// the pin moves up and down using a sine wave curve. It also triggers a circular
+/// wave-like effect and a shadow beneath the pin.
 ///
-/// parameter:
-/// [animate]: A boolean that indicates if it should be animated
-/// [iconColor]: Icon's color, the default color is white
+/// It accepts the following parameters:
+/// - [animate]: A boolean indicating whether to animate the pin (default is false).
+/// - [iconColor]: The color of the map pin icon (default is white).
+///
+/// The animation is controlled by a sine wave curve, creating a realistic pin movement.
 class MapPin extends StatefulWidget {
   final bool animate;
   final Color iconColor;
@@ -79,7 +80,6 @@ class _MapPinState extends State<MapPin> with SingleTickerProviderStateMixin {
 
   @override
   void dispose() {
-    // TODO: implement dispose
     if (widget.animate) {
       _controller.stop();
       _controller.dispose();
@@ -96,6 +96,7 @@ class _MapPinState extends State<MapPin> with SingleTickerProviderStateMixin {
           child: Transform.scale(
             scale: circleScale,
             child: Center(
+              // The circular Svg that is animated like a wave
               child: SvgPicture.string(
                 """
                     <svg height="22" width="62">
@@ -108,6 +109,7 @@ class _MapPinState extends State<MapPin> with SingleTickerProviderStateMixin {
           ),
         ),
         Center(
+          // The semi-transparent circular Svg that represents the shadow of the pin
           child: SvgPicture.string(
             """
                 <svg height="${2 * (2 * (h))}" width="${2 * (6 * h)}">

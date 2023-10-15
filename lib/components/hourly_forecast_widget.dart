@@ -3,12 +3,21 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:weather_app/utils.dart';
 
 class HourlyForecastWidget extends StatelessWidget {
-  /// This widget represents the forecast weather for a specific hour;
+  /// Widget to displays hourly weather forecasts.
   ///
-  /// Parameters:
-  /// [weatherId]: Id that identifies the weather;
-  /// [temperature]: Temperature in the specified hour;
-  /// [date]: The specified date.
+  /// This widget is designed to present weather details for a specific hour, including
+  /// an SVG icon representing the weather condition, the time, and the temperature.
+  ///
+  /// It accepts the following parameters:
+  /// - [weatherId]: The ID representing the weather condition for a specific time.
+  /// - [temperature]: The temperature for a specific time.
+  /// - [date]: The specific date and time of the weather condition.
+  ///
+  /// The widget extracts the hour and minute from the [date] to display only this
+  /// information, and formats the [temperature] to a string with one decimal place.
+  ///
+  /// This widget is primarily used in [WeatherScreen] to display weather conditions for
+  /// the next 24 hours.
   const HourlyForecastWidget(
       {super.key,
       required this.weatherId,
@@ -35,7 +44,7 @@ class HourlyForecastWidget extends StatelessWidget {
                 color: const Color.fromRGBO(255, 255, 255, 0.5)),
           ),
           Text(
-            "${temperature.toInt()}º",
+            "${temperature.toStringAsFixed(1)}º",
             style: Theme.of(context)
                 .textTheme
                 .bodyLarge!

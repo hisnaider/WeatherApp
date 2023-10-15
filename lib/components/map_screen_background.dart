@@ -1,21 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:weather_app/class/app_state_manager.dart';
+import 'package:weather_app/classes/app_state_manager.dart';
 import 'package:weather_app/components/map_pin.dart';
-import 'package:weather_app/components/weather_detail.dart';
 import 'package:weather_app/screen/weather_screen.dart';
 
 class MapScreenBackground extends StatelessWidget {
-  /// This widget represents the background of the [WeatherScreen] widget.
+  /// Widget to render the background of the [WeatherScreen] widget.
   ///
-  /// It takes the parameters [loading] and [child]. When there are no weather
-  /// data available in the app's state (in [AppStateManager]), a loading indicator
-  /// will be displayed until the weather data is fetched.
+  /// This widget displays a container with a gradient background color. When
+  /// there is no weather data available in the [AppStateManager], a loading
+  /// indicator is shown until the weather data is retrieved.
   ///
-  /// Parameters:
-  /// [loading]: A boolean that indicates if there is weather data available in
+  /// It accepts the following parameters:
+  /// - [loading]: A boolean that indicates if there is weather data available in
   /// the app's state
-  /// [child]: The widget that should be displayed over the background.
+  /// - [child]: The widget that should be displayed over the background.
+  ///
+  /// A animated switcher is used to make a smooth transition between the loading
+  /// indicator and child.
+  ///
+  /// This widget is primarily used as the background for the [WeatherScreen].
   const MapScreenBackground(
       {super.key, required this.loading, required this.child});
   final bool loading;
@@ -53,10 +57,11 @@ class MapScreenBackground extends StatelessWidget {
 /// It displays an animated [MapPin], a loading message indicating that weather
 /// data is being fetched, and the coordinates of the weather forecast.
 class _CustomLoadingIndicator extends StatelessWidget {
-  const _CustomLoadingIndicator({super.key});
+  const _CustomLoadingIndicator();
 
   @override
   Widget build(BuildContext context) {
+    // Obtain the user's coordinates from the app's state
     List<double> coordinates =
         Provider.of<AppStateManager>(context, listen: false).coordinates;
     return Stack(

@@ -1,7 +1,7 @@
 # ![WeatherApp](https://github.com/hisnaider/WeatherApp/assets/13882534/042a984c-bf91-4a14-a44d-74f4a7702f8b)
 ![Static Badge](https://img.shields.io/badge/Flutter%20-%203.13.0-%20grey?style=for-the-badge&logo=flutter&logoColor=white&labelColor=%232968D0&color=grey)
 ![Static Badge](https://img.shields.io/badge/Dart%20-%203.2.0-%20grey?style=for-the-badge&logo=dart&logoColor=%232968D0&labelColor=white&color=grey)
-![Static Badge](https://img.shields.io/badge/Status-%20under%20development%20-%20%23f59842?style=for-the-badge&labelColor=grey)
+![Static Badge](https://img.shields.io/badge/Status-complete-Efc03?style=for-the-badge&labelColor=grey)
 
 
 
@@ -31,7 +31,7 @@ This app is designed with a clean and friendly interface, making it easier for u
 - [X] Current forecast weather screen;
 - [X] Week forecast weather widget;
 - [X] Error treatment.
-- [ ] Final touchs (refactoring, commenting, etc.)
+- [X] Final touchs (refactoring, commenting, etc.)
 
 
 ## How to run the project
