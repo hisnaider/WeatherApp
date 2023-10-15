@@ -4,9 +4,8 @@
 ![Static Badge](https://img.shields.io/badge/Status-complete-Efc03?style=for-the-badge&labelColor=grey)
 
 
-
 ## About the app
-<p align="center"><img src="https://github.com/hisnaider/WeatherApp/assets/13882534/db588015-3359-474c-a9a5-0fab149a9e5d" width="500"></P>
+<p align="center"><img width="1562" alt="final design" src="https://github.com/hisnaider/WeatherApp/assets/13882534/3373d95a-ae7d-465e-aa6e-da2e79637d99"></P>
 
 The WeatherApp is a simple weather app that provides current weather conditions for any city. All the pertaining information is from OpenWeather API, one of the most popular weather APIs, that ensures users receive the most accurate and up-to-date weather data available. This API provides the temperature, cloud percentage, humidity percentage, UV index, wind speed and many other details.
 
